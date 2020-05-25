@@ -582,6 +582,10 @@ public class ExecutionGraph implements AccessExecutionGraph {
 		);
 	}
 
+	public WatchpointCoordinator getWatchpointCoordinator(){
+		return watchpointCoordinator;
+	}
+
 
 
 	// --------------------------------------------------------------------------------------------

@@ -969,6 +969,22 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 	}
 
+	@Override
+	public void stopWatchingInput(ExecutionAttemptID executionAttemptID){
+
+		final Task task = taskSlotTable.getTask(executionAttemptID);
+
+		if (task != null) {
+			task.stopWatchingInput();
+
+		} else {
+			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
+
+			log.debug(message);
+		}
+
+	}
+
 	// ======================================================================
 	//  Internal methods
 	// ======================================================================

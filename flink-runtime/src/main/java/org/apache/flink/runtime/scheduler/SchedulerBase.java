@@ -87,6 +87,7 @@ import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.state.KeyGroupRange;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
+import org.apache.flink.runtime.watchpoint.WatchpointCoordinator;
 import org.apache.flink.runtime.webmonitor.WebMonitorUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.InstantiationUtil;
@@ -904,7 +905,17 @@ public abstract class SchedulerBase implements SchedulerNG {
 
 	@Override
 	public void startWatchingInput() {
-		throw new UnsupportedOperationException();
+
+		mainThreadExecutor.assertRunningInMainThread();
+
+		final WatchpointCoordinator watchpointCoordinator = executionGraph.getWatchpointCoordinator();
+		if (watchpointCoordinator == null) {
+			throw new IllegalStateException(
+				String.format("Job %s is no streaming job.", jobGraph.getJobID()));
+		}
+
+		watchpointCoordinator.startWatchingInput();
+
 	}
 
 }

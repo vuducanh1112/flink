@@ -1676,7 +1676,15 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	}
 
 	public void stopWatchingInput() {
+		final LogicalSlot slot = assignedResource;
 
+		if (slot != null) {
+			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
+
+			taskManagerGateway.stopWatchingInput(attemptId);
+		} else {
+			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
+		}
 	}
 
 }
