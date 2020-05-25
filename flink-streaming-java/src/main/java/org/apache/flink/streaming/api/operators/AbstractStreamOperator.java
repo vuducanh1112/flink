@@ -62,6 +62,7 @@ import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.streaming.runtime.tasks.StreamTask;
+import org.apache.flink.streaming.runtime.watchpoint.Watchpoint;
 import org.apache.flink.streaming.util.LatencyStats;
 import org.apache.flink.util.CloseableIterable;
 import org.apache.flink.util.ExceptionUtils;
@@ -166,6 +167,10 @@ public abstract class AbstractStreamOperator<OUT>
 	private long input1Watermark = Long.MIN_VALUE;
 	private long input2Watermark = Long.MIN_VALUE;
 
+	// ---------------- watchpoint ------------------
+
+	protected transient Watchpoint watchpoint;
+
 	// ------------------------------------------------------------------------
 	//  Life Cycle
 	// ------------------------------------------------------------------------
@@ -176,9 +181,12 @@ public abstract class AbstractStreamOperator<OUT>
 		this.container = containingTask;
 		this.processingTimeService = containingTask.getProcessingTimeService(config.getChainIndex());
 		this.config = config;
+
+		this.watchpoint = new Watchpoint(this);
+
 		try {
 			OperatorMetricGroup operatorMetricGroup = environment.getMetricGroup().getOrAddOperator(config.getOperatorID(), config.getOperatorName());
-			this.output = new CountingOutput(output, operatorMetricGroup.getIOMetricGroup().getNumRecordsOutCounter());
+			this.output = new CountingOutput(output, operatorMetricGroup.getIOMetricGroup().getNumRecordsOutCounter(), watchpoint);
 			if (config.isChainStart()) {
 				operatorMetricGroup.getIOMetricGroup().reuseInputMetricsForTask();
 			}
@@ -708,10 +716,12 @@ public abstract class AbstractStreamOperator<OUT>
 	public static class CountingOutput<OUT> implements Output<StreamRecord<OUT>> {
 		private final Output<StreamRecord<OUT>> output;
 		private final Counter numRecordsOut;
+		private Watchpoint watchpoint;
 
-		public CountingOutput(Output<StreamRecord<OUT>> output, Counter counter) {
+		public CountingOutput(Output<StreamRecord<OUT>> output, Counter counter, Watchpoint watchpoint) {
 			this.output = output;
 			this.numRecordsOut = counter;
+			this.watchpoint = watchpoint;
 		}
 
 		@Override
@@ -727,12 +737,14 @@ public abstract class AbstractStreamOperator<OUT>
 		@Override
 		public void collect(StreamRecord<OUT> record) {
 			numRecordsOut.inc();
+			watchpoint.watchOutput(record);
 			output.collect(record);
 		}
 
 		@Override
 		public <X> void collect(OutputTag<X> outputTag, StreamRecord<X> record) {
 			numRecordsOut.inc();
+			watchpoint.watchOutput(record);
 			output.collect(outputTag, record);
 		}
 
@@ -831,4 +843,10 @@ public abstract class AbstractStreamOperator<OUT>
 		return timeServiceManager == null ? 0 :
 			timeServiceManager.numEventTimeTimers();
 	}
+
+	public Watchpoint getWatchpoint(){
+		return this.watchpoint;
+	}
+
+
 }

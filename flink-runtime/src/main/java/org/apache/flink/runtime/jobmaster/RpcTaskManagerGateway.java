@@ -106,4 +106,9 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 			cause,
 			timeout);
 	}
+
+	@Override
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID) {
+		taskExecutorGateway.startWatchingInput(executionAttemptID);
+	}
 }

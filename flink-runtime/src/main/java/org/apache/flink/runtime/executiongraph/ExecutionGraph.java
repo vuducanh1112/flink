@@ -76,6 +76,7 @@ import org.apache.flink.runtime.state.SharedStateRegistry;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.runtime.taskmanager.DispatcherThreadFactory;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
+import org.apache.flink.runtime.watchpoint.WatchpointCoordinator;
 import org.apache.flink.types.Either;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
@@ -313,6 +314,10 @@ public class ExecutionGraph implements AccessExecutionGraph {
 
 	/** Shuffle master to register partitions for task deployment. */
 	private final ShuffleMaster<?> shuffleMaster;
+
+
+	/** watchpoint coordinator */
+	private WatchpointCoordinator watchpointCoordinator;
 
 	// --------------------------------------------------------------------------------------------
 	//   Constructors
@@ -566,6 +571,18 @@ public class ExecutionGraph implements AccessExecutionGraph {
 			return all.toArray(new ExecutionVertex[all.size()]);
 		}
 	}
+
+
+
+	public void enableWatchpoints(){
+		watchpointCoordinator = new WatchpointCoordinator(
+			jobInformation.getJobId(),
+			ioExecutor,
+			tasks
+		);
+	}
+
+
 
 	// --------------------------------------------------------------------------------------------
 	//  Properties and Status of the Execution Graph

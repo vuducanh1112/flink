@@ -949,6 +949,26 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		}
 	}
 
+	// ----------------------------------------------------------------------
+	// Watchpoint RPCs
+	// ----------------------------------------------------------------------
+
+	@Override
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID){
+
+		final Task task = taskSlotTable.getTask(executionAttemptID);
+
+		if (task != null) {
+			task.startWatchingInput();
+
+		} else {
+			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
+
+			log.debug(message);
+		}
+
+	}
+
 	// ======================================================================
 	//  Internal methods
 	// ======================================================================

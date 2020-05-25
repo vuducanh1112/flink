@@ -1514,4 +1514,13 @@ public class Task implements Runnable, TaskSlotPayload, TaskActions, PartitionPr
 			}
 		}
 	}
+
+	// ------------------------------------------------------------------------
+	//  Watchpoint
+	// ------------------------------------------------------------------------
+
+	public void startWatchingInput(){
+		invokable.startWatchingInput();
+	}
+
 }

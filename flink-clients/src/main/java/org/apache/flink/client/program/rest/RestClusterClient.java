@@ -81,6 +81,9 @@ import org.apache.flink.runtime.rest.messages.job.savepoints.stop.StopWithSavepo
 import org.apache.flink.runtime.rest.messages.job.savepoints.stop.StopWithSavepointTriggerHeaders;
 import org.apache.flink.runtime.rest.messages.queue.AsynchronouslyCreatedResource;
 import org.apache.flink.runtime.rest.messages.queue.QueueStatus;
+import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputHeaders;
+import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputMessageParameters;
+import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputRequest;
 import org.apache.flink.runtime.rest.util.RestClientException;
 import org.apache.flink.runtime.rest.util.RestConstants;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
@@ -684,4 +687,22 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 				}
 			}, executorService);
 	}
+
+	//-------------------------------------------------------------------------
+	// Watchpoint
+	//-------------------------------------------------------------------------
+
+	@Override
+	public void startWatchingInput(JobID jobId){
+
+		final StartWatchingInputHeaders startWatchingInputHeaders = StartWatchingInputHeaders.getInstance();
+		final StartWatchingInputMessageParameters startWatchingInputsMessageParameters = new StartWatchingInputMessageParameters();
+		startWatchingInputsMessageParameters.jobID.resolve(jobId);
+
+		sendRequest(
+			startWatchingInputHeaders,
+			startWatchingInputsMessageParameters,
+			new StartWatchingInputRequest());
+	}
+
 }

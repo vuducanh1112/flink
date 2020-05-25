@@ -256,4 +256,27 @@ public abstract class AbstractInvokable {
 	public Future<Void> notifyCheckpointCompleteAsync(long checkpointId) {
 		throw new UnsupportedOperationException(String.format("notifyCheckpointCompleteAsync not supported by %s", this.getClass().getName()));
 	}
+
+
+
+	// ------------------------------------------------------------------------
+	//  Watchpoint
+	// ------------------------------------------------------------------------
+
+	public void startWatchingInput(){
+		//do nothing
+	}
+
+	public void stopWatchingInput(){
+		//do nothing
+	}
+
+	public void startWatchingOutput(){
+		//do nothing
+	}
+
+	public void stopWatchingOutput(){
+		//do nothing
+	}
+
 }

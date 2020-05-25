@@ -854,4 +854,19 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 			() -> removeJobAndRegisterTerminationFuture(jobId, false),
 			getMainThreadExecutor());
 	}
+
+
+	//------------------------------------------------------
+	// Watchpoint
+	//------------------------------------------------------
+
+	@Override
+	public CompletableFuture<Acknowledge> startWatchingInput(JobID jobId) {
+		final CompletableFuture<JobMasterGateway> jobMasterGatewayFuture = getJobMasterGatewayFuture(jobId);
+
+		return jobMasterGatewayFuture.thenCompose(
+			(JobMasterGateway jobMasterGateway) ->
+				jobMasterGateway.startWatchingInput());
+	}
+
 }

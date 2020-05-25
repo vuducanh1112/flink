@@ -1188,5 +1188,17 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 			return null;
 		}
 	}
+
+
+	//----------------------------------------------------------------------------------------------
+	// Watchpoint
+	//----------------------------------------------------------------------------------------------
+
+	@Override
+	public CompletableFuture<Acknowledge> startWatchingInput() {
+		schedulerNG.startWatchingInput();
+		return CompletableFuture.completedFuture(Acknowledge.get());
+	}
+
 }
 

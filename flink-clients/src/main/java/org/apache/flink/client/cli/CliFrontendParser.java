@@ -166,6 +166,12 @@ public class CliFrontendParser {
 			"Pip (version >= 7.1.0) and SetupTools (version >= 37.0.0). " +
 			"Please ensure that the specified environment meets the above requirements.");
 
+
+
+	static final Option WATCHING_OPTION = new Option("w", "watch", false,
+		"start watching");
+
+
 	static {
 		HELP_OPTION.setRequired(false);
 
@@ -306,6 +312,11 @@ public class CliFrontendParser {
 	static Options getSavepointCommandOptions() {
 		Options options = buildGeneralOptions(new Options());
 		options.addOption(SAVEPOINT_DISPOSE_OPTION);
+		return options.addOption(JAR_OPTION);
+	}
+
+	static Options getWatchpointCommandOptions() {
+		Options options = buildGeneralOptions(new Options());
 		return options.addOption(JAR_OPTION);
 	}
 

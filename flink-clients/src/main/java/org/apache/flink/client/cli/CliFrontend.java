@@ -95,6 +95,8 @@ public class CliFrontend {
 	private static final String ACTION_STOP = "stop";
 	private static final String ACTION_SAVEPOINT = "savepoint";
 
+	private static final String ACTION_WATCHPOINT = "watchpoint";
+
 	// configuration dir parameters
 	private static final String CONFIG_DIRECTORY_FALLBACK_1 = "../conf";
 	private static final String CONFIG_DIRECTORY_FALLBACK_2 = "conf";
@@ -655,6 +657,62 @@ public class CliFrontend {
 	}
 
 	// --------------------------------------------------------------------------------------------
+	//  Watchpoint
+	// --------------------------------------------------------------------------------------------
+
+	protected void watchpoint(String[] args) throws Exception {
+		LOG.info("Running 'watchpoint' command.");
+
+		final Options commandOptions = CliFrontendParser.getWatchpointCommandOptions();
+
+		final Options commandLineOptions = CliFrontendParser.mergeOptions(commandOptions, customCommandLineOptions);
+
+		final CommandLine commandLine = CliFrontendParser.parse(commandLineOptions, args, false);
+
+		final WatchpointOptions watchpointOptions = new WatchpointOptions(commandLine);
+
+		// evaluate help flag
+		if (watchpointOptions.isPrintHelp()) {
+			CliFrontendParser.printHelpForSavepoint(customCommandLines);
+			return;
+		}
+
+		final CustomCommandLine activeCommandLine = getActiveCustomCommandLine(commandLine);
+
+		String[] cleanedArgs = watchpointOptions.getArgs();
+
+		final JobID jobId;
+
+		if (cleanedArgs.length >= 1) {
+			String jobIdString = cleanedArgs[0];
+
+			jobId = parseJobId(jobIdString);
+		} else {
+			throw new CliArgsException("Missing JobID. " +
+				"Specify a Job ID to trigger a savepoint.");
+		}
+
+		// Print superfluous arguments
+		if (cleanedArgs.length >= 3) {
+			logAndSysout("Provided more arguments than required. Ignoring not needed arguments.");
+		}
+
+		runClusterAction(
+			activeCommandLine,
+			commandLine,
+			clusterClient -> startWatchingInput(clusterClient, jobId));
+	}
+
+	private void startWatchingInput(ClusterClient<?> clusterClient, JobID jobId) {
+		logAndSysout("Start watching input for job " + jobId + '.');
+
+		clusterClient.startWatchingInput(jobId);
+
+		logAndSysout("Waiting for response...");
+
+	}
+
+	// --------------------------------------------------------------------------------------------
 	//  Interaction with programs and JobManager
 	// --------------------------------------------------------------------------------------------
 
@@ -906,6 +964,9 @@ public class CliFrontend {
 					return 0;
 				case ACTION_SAVEPOINT:
 					savepoint(params);
+					return 0;
+				case ACTION_WATCHPOINT:
+					watchpoint(params);
 					return 0;
 				case "-h":
 				case "--help":

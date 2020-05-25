@@ -162,4 +162,10 @@ public interface ClusterClient<T> extends AutoCloseable {
 	 * @return path future where the savepoint is located
 	 */
 	CompletableFuture<String> triggerSavepoint(JobID jobId, @Nullable String savepointDirectory);
+
+
+	default void startWatchingInput(JobID jobId) {
+		//do nothing
+	}
+
 }

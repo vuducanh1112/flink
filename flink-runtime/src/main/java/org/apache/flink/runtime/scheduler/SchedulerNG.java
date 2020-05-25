@@ -120,4 +120,13 @@ public interface SchedulerNG {
 	void declineCheckpoint(DeclineCheckpoint decline);
 
 	CompletableFuture<String> stopWithSavepoint(String targetDirectory, boolean advanceToEndOfEventTime);
+
+	//----------------------------------------------------------------------------------------------
+	// Watchpoint
+	//----------------------------------------------------------------------------------------------
+
+	default void startWatchingInput() {
+		throw new UnsupportedOperationException();
+	}
+
 }

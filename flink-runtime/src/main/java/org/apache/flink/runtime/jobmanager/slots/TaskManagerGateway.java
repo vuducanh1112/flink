@@ -146,4 +146,8 @@ public interface TaskManagerGateway {
 		final AllocationID allocationId,
 		final Throwable cause,
 		@RpcTimeout final Time timeout);
+
+
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID);
+
 }

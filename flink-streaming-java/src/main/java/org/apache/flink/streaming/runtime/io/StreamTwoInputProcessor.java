@@ -131,6 +131,7 @@ public final class StreamTwoInputProcessor<IN1, IN2> implements StreamInputProce
 			TwoInputStreamOperator<IN1, IN2, ?> streamOperator,
 			Counter numRecordsIn) throws Exception {
 
+		System.out.println("operator " + streamOperator.getOperatorID() + "is processing record: " + record);
 		streamOperator.setKeyContextElement1(record);
 		streamOperator.processElement1(record);
 		postProcessRecord(numRecordsIn);
@@ -141,6 +142,7 @@ public final class StreamTwoInputProcessor<IN1, IN2> implements StreamInputProce
 			TwoInputStreamOperator<IN1, IN2, ?> streamOperator,
 			Counter numRecordsIn) throws Exception {
 
+		System.out.println("operator " + streamOperator.getOperatorID() + "is processing record: " + record);
 		streamOperator.setKeyContextElement2(record);
 		streamOperator.processElement2(record);
 		postProcessRecord(numRecordsIn);

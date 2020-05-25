@@ -186,4 +186,8 @@ public interface RestfulGateway extends RpcGateway {
 	default CompletableFuture<Acknowledge> shutDownCluster() {
 		throw new UnsupportedOperationException();
 	}
+
+
+	default CompletableFuture<Acknowledge> startWatchingInput(JobID jobId) {throw new UnsupportedOperationException();}
+
 }

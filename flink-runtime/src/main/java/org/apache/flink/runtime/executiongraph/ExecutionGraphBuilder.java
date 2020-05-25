@@ -345,6 +345,11 @@ public class ExecutionGraphBuilder {
 				completedCheckpoints,
 				rootBackend,
 				checkpointStatsTracker);
+
+
+
+			executionGraph.enableWatchpoints();
+
 		}
 
 		// create all the metrics for the Execution Graph

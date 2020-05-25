@@ -898,4 +898,13 @@ public abstract class SchedulerBase implements SchedulerNG {
 			.orElse("Unknown location");
 	}
 
+	//----------------------------------------------------------------------------------------------
+	// Watchpoint
+	//----------------------------------------------------------------------------------------------
+
+	@Override
+	public void startWatchingInput() {
+		throw new UnsupportedOperationException();
+	}
+
 }

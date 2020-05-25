@@ -546,6 +546,7 @@ public class OperatorChain<OUT, OP extends StreamOperator<OUT>> implements Strea
 				StreamRecord<T> castRecord = (StreamRecord<T>) record;
 
 				numRecordsIn.inc();
+				LOG.debug("operator " + operator.getOperatorID() + "is processing record: " + castRecord);
 				operator.setKeyContextElement1(castRecord);
 				operator.processElement(castRecord);
 			}

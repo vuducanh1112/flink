@@ -1657,4 +1657,26 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	private void assertRunningInJobMasterMainThread() {
 		vertex.getExecutionGraph().assertRunningInJobMasterMainThread();
 	}
+
+
+	// ------------------------------------------------------------------------
+	//  Watchpoint
+	// ------------------------------------------------------------------------
+
+	public void startWatchingInput() {
+		final LogicalSlot slot = assignedResource;
+
+		if (slot != null) {
+			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
+
+			taskManagerGateway.startWatchingInput(attemptId);
+		} else {
+			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
+		}
+	}
+
+	public void stopWatchingInput() {
+
+	}
+
 }
