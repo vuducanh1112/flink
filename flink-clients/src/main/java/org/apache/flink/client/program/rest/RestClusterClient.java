@@ -693,16 +693,18 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 	//-------------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(JobID jobId){
+	public CompletableFuture<Acknowledge> startWatchingInput(JobID jobId){
 
 		final StartWatchingInputHeaders startWatchingInputHeaders = StartWatchingInputHeaders.getInstance();
 		final StartWatchingInputMessageParameters startWatchingInputsMessageParameters = new StartWatchingInputMessageParameters();
 		startWatchingInputsMessageParameters.jobID.resolve(jobId);
 
-		sendRequest(
+		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
 			startWatchingInputHeaders,
 			startWatchingInputsMessageParameters,
 			new StartWatchingInputRequest());
+
+		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}
 
 }

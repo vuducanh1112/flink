@@ -164,8 +164,8 @@ public interface ClusterClient<T> extends AutoCloseable {
 	CompletableFuture<String> triggerSavepoint(JobID jobId, @Nullable String savepointDirectory);
 
 
-	default void startWatchingInput(JobID jobId) {
-		//do nothing
+	default CompletableFuture<Acknowledge> startWatchingInput(JobID jobId) {
+		throw new UnsupportedOperationException();
 	}
 
 }

@@ -71,6 +71,7 @@ import org.apache.flink.runtime.rest.handler.job.metrics.TaskManagerMetricsHandl
 import org.apache.flink.runtime.rest.handler.job.rescaling.RescalingHandlers;
 import org.apache.flink.runtime.rest.handler.job.savepoints.SavepointDisposalHandlers;
 import org.apache.flink.runtime.rest.handler.job.savepoints.SavepointHandlers;
+import org.apache.flink.runtime.rest.handler.job.watchpoint.WatchpointHandlers;
 import org.apache.flink.runtime.rest.handler.legacy.ConstantTextHandler;
 import org.apache.flink.runtime.rest.handler.legacy.ExecutionGraphCache;
 import org.apache.flink.runtime.rest.handler.legacy.files.LogFileHandlerSpecification;
@@ -535,6 +536,14 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 			responseHeaders,
 			ShutdownHeaders.getInstance());
 
+		final WatchpointHandlers watchpointHandlers = new WatchpointHandlers();
+
+		final WatchpointHandlers.StartWatchingInputTriggerHandler startWatchingInputTriggerHandler = watchpointHandlers.new StartWatchingInputTriggerHandler(
+			leaderRetriever,
+			timeout,
+			responseHeaders);
+
+
 		final File webUiDir = restConfiguration.getWebUiDir();
 
 		Optional<StaticFileServerHandler<T>> optWebContent;
@@ -592,6 +601,8 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 		handlers.add(Tuple2.of(rescalingStatusHandler.getMessageHeaders(), rescalingStatusHandler));
 		handlers.add(Tuple2.of(savepointDisposalTriggerHandler.getMessageHeaders(), savepointDisposalTriggerHandler));
 		handlers.add(Tuple2.of(savepointDisposalStatusHandler.getMessageHeaders(), savepointDisposalStatusHandler));
+
+		handlers.add(Tuple2.of(startWatchingInputTriggerHandler.getMessageHeaders(), startWatchingInputTriggerHandler));
 
 		// TODO: Remove once the Yarn proxy can forward all REST verbs
 		handlers.add(Tuple2.of(YarnCancelJobTerminationHeaders.getInstance(), jobCancelTerminationHandler));
