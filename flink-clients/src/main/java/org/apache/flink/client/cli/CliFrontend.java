@@ -703,12 +703,20 @@ public class CliFrontend {
 			clusterClient -> startWatchingInput(clusterClient, jobId));
 	}
 
-	private void startWatchingInput(ClusterClient<?> clusterClient, JobID jobId) {
+	private void startWatchingInput(ClusterClient<?> clusterClient, JobID jobId) throws FlinkException {
 		logAndSysout("Start watching input for job " + jobId + '.');
 
-		clusterClient.startWatchingInput(jobId);
+		final CompletableFuture<Acknowledge> disposeFuture = clusterClient.startWatchingInput(jobId);
 
 		logAndSysout("Waiting for response...");
+
+		try {
+			disposeFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			throw new FlinkException("Failed to start watching input.", e);
+		}
+
+		logAndSysout("Starting to watch input.");
 
 	}
 
