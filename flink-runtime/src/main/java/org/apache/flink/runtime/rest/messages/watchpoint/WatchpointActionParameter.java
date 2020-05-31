@@ -16,42 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.flink.client.cli;
+package org.apache.flink.runtime.rest.messages.watchpoint;
 
-import org.apache.commons.cli.CommandLine;
-
-import static org.apache.flink.client.cli.CliFrontendParser.*;
+import org.apache.flink.runtime.rest.messages.MessagePathParameter;
 
 /**
- * Command line options for the WATCHPOINT command.
+ * TaskManager id path parameter used by TaskManager related handlers.
  */
-public class WatchpointOptions extends CommandLineOptions {
+public class WatchpointActionParameter extends MessagePathParameter<String> {
 
-	private final String[] args;
+	public static final String KEY = "watchpointAction";
 
-	private String action;
-	private String target;
-
-	private String jarFile;
-
-	public WatchpointOptions(CommandLine line) {
-		super(line);
-		args = line.getArgs();
-		action = line.getOptionValue(WATCHPOINT_ACTION.getOpt());
-		target = line.getOptionValue(WATCHPOINT_ACTION_TARGET.getOpt());
-		jarFile = line.getOptionValue(JAR_OPTION.getOpt());
+	public WatchpointActionParameter() {
+		super(KEY);
 	}
 
-	public String[] getArgs() {
-		return args == null ? new String[0] : args;
+	@Override
+	protected String convertFromString(String value) {
+		return value;
 	}
 
-	public String getAction() {
-		return action;
+	@Override
+	protected String convertToString(String value) {
+		return value;
 	}
 
-	public String getTarget() {
-		return target;
+	@Override
+	public String getDescription() {
+		return "Parameter for the watchpoint to specify what to do, i.e. either 'start' or 'stop' watching.";
 	}
-
 }

@@ -117,4 +117,14 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 		taskExecutorGateway.stopWatchingInput(executionAttemptID);
 	}
 
+	@Override
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID) {
+		taskExecutorGateway.startWatchingOutput(executionAttemptID);
+	}
+
+	@Override
+	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID) {
+		taskExecutorGateway.stopWatchingOutput(executionAttemptID);
+	}
+
 }

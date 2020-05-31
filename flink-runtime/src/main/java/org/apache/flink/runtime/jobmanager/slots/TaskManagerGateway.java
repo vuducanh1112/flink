@@ -152,4 +152,8 @@ public interface TaskManagerGateway {
 
 	public void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID);
+
+	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
+
 }

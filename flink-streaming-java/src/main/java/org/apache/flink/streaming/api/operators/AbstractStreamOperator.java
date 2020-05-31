@@ -200,6 +200,8 @@ public abstract class AbstractStreamOperator<OUT>
 			this.output = output;
 		}
 
+		watchpoint.setIdentifier();
+
 		try {
 			Configuration taskManagerConfig = environment.getTaskManagerInfo().getConfiguration();
 			int historySize = taskManagerConfig.getInteger(MetricOptions.LATENCY_HISTORY_SIZE);

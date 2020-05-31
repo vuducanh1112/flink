@@ -38,6 +38,33 @@ public class WatchpointCoordinator {
 
 	}
 
+	public void operateWatchpoint(String action, WatchpointTarget target) {
+		switch(action){
+			case "startWatching":
+				switch(target.getWhatToWatch()){
+					case "input":
+						startWatchingInput();
+						break;
+					case "output":
+						startWatchingOutput();
+						break;
+				}
+				break;
+			case "stopWatching":
+				switch(target.getWhatToWatch()){
+					case "input":
+						stopWatchingInput();
+						break;
+					case "output":
+						stopWatchingOutput();
+						break;
+				}
+				break;
+			default:
+				throw new UnsupportedOperationException("action " + action + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
+		}
+	}
+
 	public void startWatchingInput() {
 
 		LOG.info("Start watching input of tasks");
@@ -56,6 +83,28 @@ public class WatchpointCoordinator {
 		for(ExecutionJobVertex executionJobVertex : tasks.values()){
 			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
 				executionVertex.getCurrentExecutionAttempt().stopWatchingInput();
+			}
+		}
+	}
+
+	public void startWatchingOutput() {
+
+		LOG.info("Start watching output of tasks");
+
+		for(ExecutionJobVertex executionJobVertex : tasks.values()){
+			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
+				executionVertex.getCurrentExecutionAttempt().startWatchingOutput();
+			}
+		}
+	}
+
+	public void stopWatchingOutput() {
+
+		LOG.info("Stop watching output of tasks");
+
+		for(ExecutionJobVertex executionJobVertex : tasks.values()){
+			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
+				executionVertex.getCurrentExecutionAttempt().stopWatchingOutput();
 			}
 		}
 	}

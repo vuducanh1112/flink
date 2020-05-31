@@ -217,4 +217,8 @@ public interface TaskExecutorGateway extends RpcGateway {
 
 	void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
+	void startWatchingOutput(ExecutionAttemptID executionAttemptID);
+
+	void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
+
 }

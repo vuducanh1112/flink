@@ -50,6 +50,7 @@ import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.runtime.util.EnvironmentInformation;
+import org.apache.flink.runtime.watchpoint.WatchpointTarget;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
 
@@ -681,10 +682,22 @@ public class CliFrontend {
 
 		String[] cleanedArgs = watchpointOptions.getArgs();
 
+		WatchpointTarget watchpointTarget;
 		final JobID jobId;
+		String action;
+		String whatToWatch;
 
 		if (cleanedArgs.length >= 1) {
-			String jobIdString = cleanedArgs[0];
+			action = watchpointOptions.getAction();
+			if(action.equals("startWatching") == false || action.equals("stopWatching") == false){
+				throw new CliArgsException("action must be either startWatching or stopWatching");
+			}
+			whatToWatch = watchpointOptions.getTarget();
+			if(whatToWatch.equals("input") == false || whatToWatch.equals("output") == false){
+				throw new CliArgsException("target must be either input or output");
+			}
+
+			String jobIdString = cleanedArgs[2];
 
 			jobId = parseJobId(jobIdString);
 		} else {
@@ -693,25 +706,27 @@ public class CliFrontend {
 		}
 
 		// Print superfluous arguments
-		if (cleanedArgs.length >= 3) {
+		if (cleanedArgs.length >= 4) {
 			logAndSysout("Provided more arguments than required. Ignoring not needed arguments.");
 		}
+
+		watchpointTarget = new WatchpointTarget(whatToWatch, jobId);
 
 		runClusterAction(
 			activeCommandLine,
 			commandLine,
-			clusterClient -> startWatchingInput(clusterClient, jobId));
+			clusterClient -> operateWatchpoints(clusterClient, action, watchpointTarget));
 	}
 
-	private void startWatchingInput(ClusterClient<?> clusterClient, JobID jobId) throws FlinkException {
-		logAndSysout("Start watching input for job " + jobId + '.');
+	private void operateWatchpoints(ClusterClient<?> clusterClient, String action, WatchpointTarget target) throws FlinkException {
+		logAndSysout(action + " " + target.getWhatToWatch() + " for job " + target.getJobId() + '.');
 
-		final CompletableFuture<Acknowledge> disposeFuture = clusterClient.startWatchingInput(jobId);
+		final CompletableFuture<Acknowledge> operateWatchpointFuture = clusterClient.operateWatchpoint(target.getJobId(), action, target);
 
 		logAndSysout("Waiting for response...");
 
 		try {
-			disposeFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
+			operateWatchpointFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
 			throw new FlinkException("Failed to start watching input.", e);
 		}

@@ -543,6 +543,16 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 			timeout,
 			responseHeaders);
 
+		final WatchpointHandlers.StopWatchingInputTriggerHandler stopWatchingInputTriggerHandler = watchpointHandlers.new StopWatchingInputTriggerHandler(
+			leaderRetriever,
+			timeout,
+			responseHeaders);
+
+		final WatchpointHandlers.WatchpointOperationTriggerHandler watchpointOperationTriggerHandler = watchpointHandlers.new WatchpointOperationTriggerHandler(
+			leaderRetriever,
+			timeout,
+			responseHeaders);
+
 
 		final File webUiDir = restConfiguration.getWebUiDir();
 
@@ -603,6 +613,8 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 		handlers.add(Tuple2.of(savepointDisposalStatusHandler.getMessageHeaders(), savepointDisposalStatusHandler));
 
 		handlers.add(Tuple2.of(startWatchingInputTriggerHandler.getMessageHeaders(), startWatchingInputTriggerHandler));
+		handlers.add(Tuple2.of(stopWatchingInputTriggerHandler.getMessageHeaders(), stopWatchingInputTriggerHandler));
+		handlers.add(Tuple2.of(watchpointOperationTriggerHandler.getMessageHeaders(), watchpointOperationTriggerHandler));
 
 		// TODO: Remove once the Yarn proxy can forward all REST verbs
 		handlers.add(Tuple2.of(YarnCancelJobTerminationHeaders.getInstance(), jobCancelTerminationHandler));

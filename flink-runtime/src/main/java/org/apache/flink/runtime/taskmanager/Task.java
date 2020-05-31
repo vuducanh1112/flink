@@ -1527,4 +1527,12 @@ public class Task implements Runnable, TaskSlotPayload, TaskActions, PartitionPr
 		invokable.stopWatchingInput();
 	}
 
+	public void startWatchingOutput(){
+		invokable.startWatchingOutput();
+	}
+
+	public void stopWatchingOutput(){
+		invokable.stopWatchingOutput();
+	}
+
 }

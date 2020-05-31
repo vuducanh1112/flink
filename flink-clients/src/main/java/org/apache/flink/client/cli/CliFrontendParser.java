@@ -168,8 +168,13 @@ public class CliFrontendParser {
 
 
 
-	static final Option WATCHING_OPTION = new Option("w", "watch", false,
-		"start watching");
+	static final Option WATCHPOINT_ACTION = new Option("action", "action", true,
+		"Specify whether start or stop watching " +
+			"e.g. : --action startWatching");
+
+	static final Option WATCHPOINT_ACTION_TARGET = new Option("target", "target", true,
+		"Specify whether watch/stop watching input or output " +
+			"e.g. : --target output");
 
 
 	static {
@@ -234,6 +239,9 @@ public class CliFrontendParser {
 		PYARCHIVE_OPTION.setRequired(false);
 
 		PYEXEC_OPTION.setRequired(false);
+
+		WATCHPOINT_ACTION.setRequired(true);
+		WATCHPOINT_ACTION_TARGET.setRequired(true);
 	}
 
 	static final Options RUN_OPTIONS = getRunCommandOptions();
@@ -317,6 +325,8 @@ public class CliFrontendParser {
 
 	static Options getWatchpointCommandOptions() {
 		Options options = buildGeneralOptions(new Options());
+		options.addOption(WATCHPOINT_ACTION);
+		options.addOption(WATCHPOINT_ACTION_TARGET);
 		return options.addOption(JAR_OPTION);
 	}
 

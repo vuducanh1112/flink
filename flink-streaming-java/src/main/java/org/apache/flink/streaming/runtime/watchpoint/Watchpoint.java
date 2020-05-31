@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 import java.io.OutputStream;
+import java.sql.Timestamp;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -29,6 +30,8 @@ public class Watchpoint {
 
 	private boolean isWatchingOutput;
 
+	private String identifier; //adopted from flink metric identifiers
+
 	// ------------------------------------------------------------------------
 	//  Constructors
 	// ------------------------------------------------------------------------
@@ -43,8 +46,8 @@ public class Watchpoint {
 		this.outputStream = System.out;
 		this.serializationSchema = new SimpleStringSchema();
 
-		this.isWatchingInput = true;
-		this.isWatchingOutput = true;
+		this.isWatchingInput = false;
+		this.isWatchingOutput = false;
 	}
 
 	// ------------------------------------------------------------------------
@@ -55,7 +58,7 @@ public class Watchpoint {
 		if(isWatchingInput){
 			try{
 				if(guardIN.filter(inStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize(inStreamRecord.toString()));
+					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + inStreamRecord.toString() + "\n"));
 				}
 			}catch(Exception e){
 				e.printStackTrace(System.err);
@@ -93,6 +96,10 @@ public class Watchpoint {
 
 	public void stopWatchingOutput(){
 		this.isWatchingOutput = false;
+	}
+
+	public void setIdentifier() {
+		this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
 	}
 
 	// ------------------------------------------------------------------------

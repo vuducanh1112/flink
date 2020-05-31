@@ -81,12 +81,11 @@ import org.apache.flink.runtime.rest.messages.job.savepoints.stop.StopWithSavepo
 import org.apache.flink.runtime.rest.messages.job.savepoints.stop.StopWithSavepointTriggerHeaders;
 import org.apache.flink.runtime.rest.messages.queue.AsynchronouslyCreatedResource;
 import org.apache.flink.runtime.rest.messages.queue.QueueStatus;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputHeaders;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputMessageParameters;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputRequest;
+import org.apache.flink.runtime.rest.messages.watchpoint.*;
 import org.apache.flink.runtime.rest.util.RestClientException;
 import org.apache.flink.runtime.rest.util.RestConstants;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
+import org.apache.flink.runtime.watchpoint.WatchpointTarget;
 import org.apache.flink.runtime.webmonitor.retriever.LeaderRetriever;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.ExecutorUtils;
@@ -703,6 +702,23 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 			startWatchingInputHeaders,
 			startWatchingInputsMessageParameters,
 			new StartWatchingInputRequest());
+
+		return responseFuture.thenApply(ignore -> Acknowledge.get());
+	}
+
+	@Override
+	public CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointTarget target){
+
+		final WatchpointHeaders watchpointHeaders = WatchpointHeaders.getInstance();
+		final WatchpointMessageParameters watchpointMessageParameters = new WatchpointMessageParameters();
+		watchpointMessageParameters.jobId.resolve(jobId);
+		watchpointMessageParameters.watchpointActionParameter.resolve(action);
+		watchpointMessageParameters.watchpointTargetParameter.resolve(target.getWhatToWatch());
+
+		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
+			watchpointHeaders,
+			watchpointMessageParameters,
+			new WatchpointRequest());
 
 		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}

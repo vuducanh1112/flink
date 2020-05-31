@@ -31,10 +31,9 @@ import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalRe
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalStatusHeaders;
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalStatusMessageParameters;
 import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalTriggerHeaders;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputHeaders;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputMessageParameters;
-import org.apache.flink.runtime.rest.messages.watchpoint.StartWatchingInputRequest;
+import org.apache.flink.runtime.rest.messages.watchpoint.*;
 import org.apache.flink.runtime.rpc.RpcUtils;
+import org.apache.flink.runtime.watchpoint.WatchpointTarget;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
 import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
@@ -44,12 +43,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Handlers to trigger the disposal of a savepoint.
+ * Handlers to trigger operations regarding watchpoints.
  */
 public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<OperationKey, Acknowledge> {
 
 	/**
-	 * {@link TriggerHandler} implementation for the savepoint disposal operation.
+	 * {@link TriggerHandler} implementation for starting to watch inputs.
 	 */
 	public class StartWatchingInputTriggerHandler extends TriggerHandler<RestfulGateway, StartWatchingInputRequest, StartWatchingInputMessageParameters> {
 
@@ -73,6 +72,66 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 
 		@Override
 		protected OperationKey createOperationKey(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request) {
+			return new OperationKey(new TriggerId());
+		}
+	}
+
+	/**
+	 * {@link TriggerHandler} implementation for starting to watch inputs.
+	 */
+	public class StopWatchingInputTriggerHandler extends TriggerHandler<RestfulGateway, StartWatchingInputRequest, StartWatchingInputMessageParameters> {
+
+		public StopWatchingInputTriggerHandler(
+			GatewayRetriever<? extends RestfulGateway> leaderRetriever,
+			Time timeout,
+			Map<String, String> responseHeaders) {
+			super(
+				leaderRetriever,
+				timeout,
+				responseHeaders,
+				StartWatchingInputHeaders.getInstance());
+		}
+
+		@Override
+		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
+			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
+
+			return gateway.stopWatchingInput(jobId);
+		}
+
+		@Override
+		protected OperationKey createOperationKey(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request) {
+			return new OperationKey(new TriggerId());
+		}
+	}
+
+	/**
+	 * {@link TriggerHandler} implementation for starting to watch inputs.
+	 */
+	public class WatchpointOperationTriggerHandler extends TriggerHandler<RestfulGateway, WatchpointRequest, WatchpointMessageParameters> {
+
+		public WatchpointOperationTriggerHandler(
+			GatewayRetriever<? extends RestfulGateway> leaderRetriever,
+			Time timeout,
+			Map<String, String> responseHeaders) {
+			super(
+				leaderRetriever,
+				timeout,
+				responseHeaders,
+				WatchpointHeaders.getInstance());
+		}
+
+		@Override
+		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<WatchpointRequest, WatchpointMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
+			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
+			String action = request.getPathParameter(WatchpointActionParameter.class);
+			String whatToWatch = request.getPathParameter(WatchpointTargetParameter.class);
+
+			return gateway.operateWatchpoints(jobId, action, new WatchpointTarget(whatToWatch, jobId));
+		}
+
+		@Override
+		protected OperationKey createOperationKey(HandlerRequest<WatchpointRequest, WatchpointMessageParameters> request) {
 			return new OperationKey(new TriggerId());
 		}
 	}

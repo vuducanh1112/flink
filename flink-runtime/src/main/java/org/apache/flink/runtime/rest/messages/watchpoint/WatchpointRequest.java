@@ -16,42 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.flink.client.cli;
+package org.apache.flink.runtime.rest.messages.watchpoint;
 
-import org.apache.commons.cli.CommandLine;
-
-import static org.apache.flink.client.cli.CliFrontendParser.*;
+import org.apache.flink.runtime.rest.messages.RequestBody;
 
 /**
- * Command line options for the WATCHPOINT command.
+ * Request body to operate watchpoints.
  */
-public class WatchpointOptions extends CommandLineOptions {
+public class WatchpointRequest implements RequestBody {
 
-	private final String[] args;
-
-	private String action;
-	private String target;
-
-	private String jarFile;
-
-	public WatchpointOptions(CommandLine line) {
-		super(line);
-		args = line.getArgs();
-		action = line.getOptionValue(WATCHPOINT_ACTION.getOpt());
-		target = line.getOptionValue(WATCHPOINT_ACTION_TARGET.getOpt());
-		jarFile = line.getOptionValue(JAR_OPTION.getOpt());
-	}
-
-	public String[] getArgs() {
-		return args == null ? new String[0] : args;
-	}
-
-	public String getAction() {
-		return action;
-	}
-
-	public String getTarget() {
-		return target;
-	}
+	public WatchpointRequest(){}
 
 }
