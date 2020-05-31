@@ -697,7 +697,7 @@ public class CliFrontend {
 				throw new CliArgsException("target must be either input or output");
 			}
 
-			String jobIdString = cleanedArgs[2];
+			String jobIdString = cleanedArgs[0];
 
 			jobId = parseJobId(jobIdString);
 		} else {
