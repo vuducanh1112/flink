@@ -210,4 +210,16 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 		operator.getWatchpoint().stopWatchingInput();
 	}
 
+	@Override
+	public void startWatchingOutput() {
+		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[0];
+		operator.getWatchpoint().startWatchingOutput();
+	}
+
+	@Override
+	public void stopWatchingOutput() {
+		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[0];
+		operator.getWatchpoint().stopWatchingOutput();
+	}
+
 }
