@@ -711,7 +711,7 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 
 		final WatchpointHeaders watchpointHeaders = WatchpointHeaders.getInstance();
 		final WatchpointMessageParameters watchpointMessageParameters = new WatchpointMessageParameters();
-		watchpointMessageParameters.jobId.resolve(jobId);
+		watchpointMessageParameters.jobPathParameter.resolve(jobId);
 		//watchpointMessageParameters.watchpointActionParameter.resolve(action);
 		//watchpointMessageParameters.watchpointTargetParameter.resolve(target.getWhatToWatch());
 
