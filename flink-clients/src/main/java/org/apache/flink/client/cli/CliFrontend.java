@@ -689,11 +689,11 @@ public class CliFrontend {
 
 		if (cleanedArgs.length >= 1) {
 			action = watchpointOptions.getAction();
-			if(action.equals("startWatching") == false || action.equals("stopWatching") == false){
+			if(action.equals("startWatching") == false && action.equals("stopWatching") == false){
 				throw new CliArgsException("action must be either startWatching or stopWatching");
 			}
 			whatToWatch = watchpointOptions.getTarget();
-			if(whatToWatch.equals("input") == false || whatToWatch.equals("output") == false){
+			if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
 				throw new CliArgsException("target must be either input or output");
 			}
 
