@@ -712,13 +712,13 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 		final WatchpointHeaders watchpointHeaders = WatchpointHeaders.getInstance();
 		final WatchpointMessageParameters watchpointMessageParameters = new WatchpointMessageParameters();
 		watchpointMessageParameters.jobId.resolve(jobId);
-		watchpointMessageParameters.watchpointActionParameter.resolve(action);
-		watchpointMessageParameters.watchpointTargetParameter.resolve(target.getWhatToWatch());
+		//watchpointMessageParameters.watchpointActionParameter.resolve(action);
+		//watchpointMessageParameters.watchpointTargetParameter.resolve(target.getWhatToWatch());
 
 		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
 			watchpointHeaders,
 			watchpointMessageParameters,
-			new WatchpointRequest());
+			new WatchpointRequest(action, target.getWhatToWatch()));
 
 		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}

@@ -124,8 +124,8 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 		@Override
 		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<WatchpointRequest, WatchpointMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
 			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
-			String action = request.getPathParameter(WatchpointActionParameter.class);
-			String whatToWatch = request.getPathParameter(WatchpointTargetParameter.class);
+			String action = request.getRequestBody().getAction();
+			String whatToWatch = request.getRequestBody().getTarget();
 
 			return gateway.operateWatchpoints(jobId, action, new WatchpointTarget(whatToWatch, jobId));
 		}

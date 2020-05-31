@@ -19,12 +19,42 @@
 package org.apache.flink.runtime.rest.messages.watchpoint;
 
 import org.apache.flink.runtime.rest.messages.RequestBody;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonCreator;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.annotation.Nullable;
 
 /**
  * Request body to operate watchpoints.
  */
 public class WatchpointRequest implements RequestBody {
 
-	public WatchpointRequest(){}
+	public static final String FIELD_NAME_WATCHPOINT_ACTION = "action";
+
+	private static final String FIELD_NAME_WATCHPOINT_TARGET = "target";
+
+	@JsonProperty(FIELD_NAME_WATCHPOINT_ACTION)
+	@Nullable
+	private final String action;
+
+	@JsonProperty(FIELD_NAME_WATCHPOINT_TARGET)
+	private final String target;
+
+	@JsonCreator
+	public WatchpointRequest(
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_ACTION) final String action,
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target) {
+		this.action = action;
+		this.target = target;
+	}
+
+	@Nullable
+	public String getAction() {
+		return action;
+	}
+
+	public String getTarget() {
+		return target;
+	}
 
 }
