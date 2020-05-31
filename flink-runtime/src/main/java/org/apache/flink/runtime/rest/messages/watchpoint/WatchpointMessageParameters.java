@@ -26,8 +26,9 @@ import java.util.Collection;
 /**
  * Message parameters for subtask REST handlers.
  */
-public class WatchpointMessageParameters extends JobVertexMessageParameters {
+public class WatchpointMessageParameters extends JobMessageParameters {
 
+	/**
 	public final JobIDPathParameter jobId = new JobIDPathParameter();
 
 	public final JobVertexIdPathParameter jobVertexIdPathParameter = new JobVertexIdPathParameter();
@@ -42,4 +43,5 @@ public class WatchpointMessageParameters extends JobVertexMessageParameters {
 	public Collection<MessagePathParameter<?>> getPathParameters() {
 		return Arrays.asList(jobId, watchpointActionParameter, watchpointTargetParameter);
 	}
+	**/
 }
