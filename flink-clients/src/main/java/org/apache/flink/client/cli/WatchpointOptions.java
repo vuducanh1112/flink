@@ -31,6 +31,7 @@ public class WatchpointOptions extends CommandLineOptions {
 
 	private String action;
 	private String target;
+	private String guard;
 
 	private String jarFile;
 
@@ -39,6 +40,7 @@ public class WatchpointOptions extends CommandLineOptions {
 		args = line.getArgs();
 		action = line.getOptionValue(WATCHPOINT_ACTION.getOpt());
 		target = line.getOptionValue(WATCHPOINT_ACTION_TARGET.getOpt());
+		guard = line.getOptionValue(WATCHPOINT_GUARD.getOpt());
 		jarFile = line.getOptionValue(JAR_OPTION.getOpt());
 	}
 
@@ -53,5 +55,7 @@ public class WatchpointOptions extends CommandLineOptions {
 	public String getTarget() {
 		return target;
 	}
+
+	public String getGuard() { return guard; }
 
 }

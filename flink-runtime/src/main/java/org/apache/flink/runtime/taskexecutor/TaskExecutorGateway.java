@@ -19,6 +19,7 @@
 package org.apache.flink.runtime.taskexecutor;
 
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.TransientBlobKey;
@@ -213,11 +214,11 @@ public interface TaskExecutorGateway extends RpcGateway {
 	 */
 	CompletableFuture<Boolean> canBeReleased();
 
-	void startWatchingInput(ExecutionAttemptID executionAttemptID);
+	void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
 
 	void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
-	void startWatchingOutput(ExecutionAttemptID executionAttemptID);
+	void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
 
 	void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
 

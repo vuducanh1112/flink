@@ -1,17 +1,18 @@
 package org.apache.flink.runtime.watchpoint;
 
 import org.apache.flink.api.common.JobID;
-import org.apache.flink.runtime.checkpoint.CheckpointCoordinator;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.util.FlinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 public class WatchpointCoordinator {
@@ -27,6 +28,10 @@ public class WatchpointCoordinator {
 	/** */
 	private final Map<JobVertexID, ExecutionJobVertex> tasks;
 
+	//----------------------------------------------------------------------------------------------
+	// Constructors
+	//----------------------------------------------------------------------------------------------
+
 	public WatchpointCoordinator(
 		JobID job,
 		Executor executor,
@@ -38,15 +43,27 @@ public class WatchpointCoordinator {
 
 	}
 
-	public void operateWatchpoint(String action, WatchpointTarget target) {
+	//----------------------------------------------------------------------------------------------
+	// Watchpoint operations
+	//----------------------------------------------------------------------------------------------
+
+	public void operateWatchpoint(String action, WatchpointCommand target) {
 		switch(action){
 			case "startWatching":
+				FilterFunction guard;
+				try{
+					guard = loadFilterFunction(target.getGuardClassName());
+				}catch(Exception e){
+					LOG.warn("filter function " + target.getGuardClassName() + " could not be loaded");
+					guard = (x) -> true;
+				}
+
 				switch(target.getWhatToWatch()){
 					case "input":
-						startWatchingInput();
+						startWatchingInput(guard);
 						break;
 					case "output":
-						startWatchingOutput();
+						startWatchingOutput(guard);
 						break;
 				}
 				break;
@@ -65,13 +82,13 @@ public class WatchpointCoordinator {
 		}
 	}
 
-	public void startWatchingInput() {
+	public void startWatchingInput(FilterFunction guard) {
 
 		LOG.info("Start watching input of tasks");
 
 		for(ExecutionJobVertex executionJobVertex : tasks.values()){
 			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingInput();
+				executionVertex.getCurrentExecutionAttempt().startWatchingInput(guard);
 			}
 		}
 	}
@@ -87,13 +104,13 @@ public class WatchpointCoordinator {
 		}
 	}
 
-	public void startWatchingOutput() {
+	public void startWatchingOutput(FilterFunction guard) {
 
 		LOG.info("Start watching output of tasks");
 
 		for(ExecutionJobVertex executionJobVertex : tasks.values()){
 			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingOutput();
+				executionVertex.getCurrentExecutionAttempt().startWatchingOutput(guard);
 			}
 		}
 	}
@@ -107,6 +124,52 @@ public class WatchpointCoordinator {
 				executionVertex.getCurrentExecutionAttempt().stopWatchingOutput();
 			}
 		}
+	}
+
+	//----------------------------------------------------------------------------------------------
+	// Helper
+	//----------------------------------------------------------------------------------------------
+
+	private FilterFunction loadFilterFunction(String className) throws Exception{
+
+		if(className == ""){
+			return (x) -> true;
+		}
+
+
+		ClassLoader classLoader = FilterFunction.class.getClassLoader();
+		final Class<? extends FilterFunction> filterFunctionClass;
+		try {
+			filterFunctionClass = Class.forName(className, true, classLoader)
+				.asSubclass(FilterFunction.class);
+		} catch (Throwable t) {
+			throw new Exception("Could not load the filter function " + className + ".", t);
+		}
+
+		Constructor<? extends FilterFunction> statelessCtor;
+
+		try {
+			statelessCtor = filterFunctionClass.getConstructor();
+		} catch (NoSuchMethodException ee) {
+			throw new FlinkException("Task misses proper constructor", ee);
+		}
+
+		// instantiate the class
+		try {
+			//noinspection ConstantConditions  --> cannot happen
+			FilterFunction filterFunction =  statelessCtor.newInstance();
+			System.out.println("start test");
+			if(filterFunction.filter("hello")){
+				System.out.println("hello");
+			}
+			if(filterFunction.filter("no")){
+				System.out.println("no");
+			}
+			return filterFunction;
+		} catch (Exception e) {
+			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);
+		}
+
 	}
 
 }

@@ -32,6 +32,10 @@ public class Watchpoint {
 
 	private String identifier; //adopted from flink metric identifiers
 
+	private Object inputInstance;
+
+	private Object outputInstance;
+
 	// ------------------------------------------------------------------------
 	//  Constructors
 	// ------------------------------------------------------------------------
@@ -48,6 +52,9 @@ public class Watchpoint {
 
 		this.isWatchingInput = false;
 		this.isWatchingOutput = false;
+
+		this.inputInstance = operator.getOperatorConfig().getTypeSerializerIn1(operator.getUserCodeClassloader()).createInstance();
+		this.outputInstance = operator.getOperatorConfig().getTypeSerializerOut(operator.getUserCodeClassloader()).createInstance();
 	}
 
 	// ------------------------------------------------------------------------
@@ -82,19 +89,21 @@ public class Watchpoint {
 	//  Utility
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(){
+	public void startWatchingInput(FilterFunction guard) {
+		setGuardIN(guard);
 		this.isWatchingInput = true;
 	}
 
-	public void stopWatchingInput(){
+	public void stopWatchingInput() {
 		this.isWatchingInput = false;
 	}
 
-	public void startWatchingOutput(){
+	public void startWatchingOutput(FilterFunction guard) {
+		setGuardOUT(guard);
 		this.isWatchingOutput = true;
 	}
 
-	public void stopWatchingOutput(){
+	public void stopWatchingOutput() {
 		this.isWatchingOutput = false;
 	}
 
@@ -106,12 +115,26 @@ public class Watchpoint {
 	//  Setter and Getter
 	// ------------------------------------------------------------------------
 
-	public void setGuardIN(FilterFunction guardIN){
-		this.guardIN = checkNotNull(guardIN);
+	public void setGuardIN(FilterFunction guardIN) {
+
+		try{
+			this.guardIN = checkNotNull(guardIN);
+			guardIN.filter(this.inputInstance);
+		}catch (Exception e){
+			this.guardIN = (x) -> true;
+		}
+
 	}
 
-	public void setGuardOUT(FilterFunction guardOUT){
-		this.guardOUT = checkNotNull(guardOUT);
+	public void setGuardOUT(FilterFunction guardOUT) {
+
+		try{
+			this.guardOUT = checkNotNull(guardOUT);
+			guardOUT.filter(this.inputInstance);
+		}catch (Exception e){
+			this.guardOUT = (x) -> true;
+		}
+
 	}
 
 }

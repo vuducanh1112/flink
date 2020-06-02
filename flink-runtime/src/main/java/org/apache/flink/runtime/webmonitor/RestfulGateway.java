@@ -35,7 +35,7 @@ import org.apache.flink.runtime.metrics.dump.MetricQueryService;
 import org.apache.flink.runtime.rest.handler.legacy.backpressure.OperatorBackPressureStatsResponse;
 import org.apache.flink.runtime.rpc.RpcGateway;
 import org.apache.flink.runtime.rpc.RpcTimeout;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -193,6 +193,6 @@ public interface RestfulGateway extends RpcGateway {
 
 	default CompletableFuture<Acknowledge> stopWatchingInput(JobID jobId) {throw new UnsupportedOperationException();}
 
-	default CompletableFuture<Acknowledge> operateWatchpoints(JobID jobId, String action, WatchpointTarget target) {throw new UnsupportedOperationException();}
+	default CompletableFuture<Acknowledge> operateWatchpoints(JobID jobId, String action, WatchpointCommand target) {throw new UnsupportedOperationException();}
 
 }

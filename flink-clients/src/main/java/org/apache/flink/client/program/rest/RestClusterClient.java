@@ -85,7 +85,7 @@ import org.apache.flink.runtime.rest.messages.watchpoint.*;
 import org.apache.flink.runtime.rest.util.RestClientException;
 import org.apache.flink.runtime.rest.util.RestConstants;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.runtime.webmonitor.retriever.LeaderRetriever;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.ExecutorUtils;
@@ -707,7 +707,7 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 	}
 
 	@Override
-	public CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointTarget target){
+	public CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointCommand target){
 
 		final WatchpointHeaders watchpointHeaders = WatchpointHeaders.getInstance();
 		final WatchpointMessageParameters watchpointMessageParameters = new WatchpointMessageParameters();
@@ -718,7 +718,7 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
 			watchpointHeaders,
 			watchpointMessageParameters,
-			new WatchpointRequest(action, target.getWhatToWatch()));
+			new WatchpointRequest(action, target.getWhatToWatch(), target.getGuardClassName()));
 
 		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}

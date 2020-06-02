@@ -20,6 +20,7 @@ package org.apache.flink.streaming.runtime.tasks;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.execution.Environment;
@@ -199,9 +200,9 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 	// ------------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput() {
+	public void startWatchingInput(FilterFunction guard) {
 		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
-		operator.getWatchpoint().startWatchingInput();
+		operator.getWatchpoint().startWatchingInput(guard);
 	}
 
 	@Override
@@ -211,9 +212,9 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 	}
 
 	@Override
-	public void startWatchingOutput() {
+	public void startWatchingOutput(FilterFunction guard) {
 		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
-		operator.getWatchpoint().startWatchingOutput();
+		operator.getWatchpoint().startWatchingOutput(guard);
 	}
 
 	@Override

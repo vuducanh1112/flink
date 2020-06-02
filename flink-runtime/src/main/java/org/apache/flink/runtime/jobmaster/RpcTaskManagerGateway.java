@@ -19,6 +19,7 @@
 package org.apache.flink.runtime.jobmaster;
 
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.checkpoint.CheckpointOptions;
 import org.apache.flink.runtime.clusterframework.types.AllocationID;
@@ -108,8 +109,8 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 	}
 
 	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID) {
-		taskExecutorGateway.startWatchingInput(executionAttemptID);
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard) {
+		taskExecutorGateway.startWatchingInput(executionAttemptID, guard);
 	}
 
 	@Override
@@ -118,8 +119,8 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 	}
 
 	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID) {
-		taskExecutorGateway.startWatchingOutput(executionAttemptID);
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard) {
+		taskExecutorGateway.startWatchingOutput(executionAttemptID, guard);
 	}
 
 	@Override

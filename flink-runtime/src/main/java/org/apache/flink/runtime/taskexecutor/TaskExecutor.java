@@ -20,6 +20,7 @@ package org.apache.flink.runtime.taskexecutor;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.accumulators.AccumulatorSnapshot;
 import org.apache.flink.runtime.blob.BlobCacheService;
@@ -954,12 +955,12 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	// ----------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID){
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard){
 
 		final Task task = taskSlotTable.getTask(executionAttemptID);
 
 		if (task != null) {
-			task.startWatchingInput();
+			task.startWatchingInput(guard);
 
 		} else {
 			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
@@ -986,12 +987,12 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	}
 
 	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID){
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard){
 
 		final Task task = taskSlotTable.getTask(executionAttemptID);
 
 		if (task != null) {
-			task.startWatchingOutput();
+			task.startWatchingOutput(guard);
 
 		} else {
 			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';

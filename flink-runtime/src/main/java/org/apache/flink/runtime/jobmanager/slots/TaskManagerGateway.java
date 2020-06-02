@@ -19,6 +19,7 @@
 package org.apache.flink.runtime.jobmanager.slots;
 
 import org.apache.flink.api.common.JobID;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.runtime.checkpoint.CheckpointOptions;
 import org.apache.flink.runtime.clusterframework.types.AllocationID;
@@ -148,11 +149,11 @@ public interface TaskManagerGateway {
 		@RpcTimeout final Time timeout);
 
 
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID);
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
 
 	public void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID);
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
 
 	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
 

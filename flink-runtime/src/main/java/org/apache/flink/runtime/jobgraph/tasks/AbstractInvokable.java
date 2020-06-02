@@ -19,6 +19,7 @@
 package org.apache.flink.runtime.jobgraph.tasks;
 
 import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.checkpoint.CheckpointMetaData;
 import org.apache.flink.runtime.checkpoint.CheckpointMetrics;
@@ -263,7 +264,7 @@ public abstract class AbstractInvokable {
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(){
+	public void startWatchingInput(FilterFunction guard){
 		//do nothing
 	}
 
@@ -271,7 +272,7 @@ public abstract class AbstractInvokable {
 		//do nothing
 	}
 
-	public void startWatchingOutput(){
+	public void startWatchingOutput(FilterFunction guard){
 		//do nothing
 	}
 

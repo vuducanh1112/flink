@@ -44,7 +44,7 @@ import org.apache.flink.runtime.taskexecutor.AccumulatorReport;
 import org.apache.flink.runtime.taskexecutor.slot.SlotOffer;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 
 import javax.annotation.Nullable;
 
@@ -277,6 +277,6 @@ public interface JobMasterGateway extends
 
 	default CompletableFuture<Acknowledge> stopWatchingInput() {throw new UnsupportedOperationException();}
 
-	default CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointTarget target) {throw new UnsupportedOperationException();}
+	default CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointCommand target) {throw new UnsupportedOperationException();}
 
 }

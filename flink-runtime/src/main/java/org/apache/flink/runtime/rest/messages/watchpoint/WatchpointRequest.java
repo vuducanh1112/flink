@@ -33,6 +33,8 @@ public class WatchpointRequest implements RequestBody {
 
 	private static final String FIELD_NAME_WATCHPOINT_TARGET = "target";
 
+	private static final String FIELD_NAME_WATCHPOINT_GUARDCLASSNAME = "guardClassName";
+
 	@JsonProperty(FIELD_NAME_WATCHPOINT_ACTION)
 	@Nullable
 	private final String action;
@@ -40,15 +42,20 @@ public class WatchpointRequest implements RequestBody {
 	@JsonProperty(FIELD_NAME_WATCHPOINT_TARGET)
 	private final String target;
 
+	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME)
+	private final String guardClassName;
+
 	@JsonCreator
 	public WatchpointRequest(
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_ACTION) final String action,
-		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target) {
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target,
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME) final String guardClassName) {
 		this.action = action;
 		this.target = target;
+		this.guardClassName = guardClassName;
 	}
 
-	@Nullable
+
 	public String getAction() {
 		return action;
 	}
@@ -56,5 +63,7 @@ public class WatchpointRequest implements RequestBody {
 	public String getTarget() {
 		return target;
 	}
+
+	public String getGuardClassName() { return guardClassName; }
 
 }

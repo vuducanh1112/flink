@@ -23,6 +23,7 @@ import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.TaskInfo;
 import org.apache.flink.api.common.cache.DistributedCache;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.core.fs.FileSystemSafetyNet;
@@ -1519,16 +1520,16 @@ public class Task implements Runnable, TaskSlotPayload, TaskActions, PartitionPr
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(){
-		invokable.startWatchingInput();
+	public void startWatchingInput(FilterFunction guard){
+		invokable.startWatchingInput(guard);
 	}
 
 	public void stopWatchingInput(){
 		invokable.stopWatchingInput();
 	}
 
-	public void startWatchingOutput(){
-		invokable.startWatchingOutput();
+	public void startWatchingOutput(FilterFunction guard){
+		invokable.startWatchingOutput(guard);
 	}
 
 	public void stopWatchingOutput(){

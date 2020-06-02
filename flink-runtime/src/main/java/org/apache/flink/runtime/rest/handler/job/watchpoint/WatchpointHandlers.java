@@ -24,20 +24,12 @@ import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
 import org.apache.flink.runtime.rest.handler.async.AbstractAsynchronousOperationHandlers;
-import org.apache.flink.runtime.rest.handler.async.AsynchronousOperationInfo;
 import org.apache.flink.runtime.rest.handler.async.OperationKey;
 import org.apache.flink.runtime.rest.messages.*;
-import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalRequest;
-import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalStatusHeaders;
-import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalStatusMessageParameters;
-import org.apache.flink.runtime.rest.messages.job.savepoints.SavepointDisposalTriggerHeaders;
 import org.apache.flink.runtime.rest.messages.watchpoint.*;
-import org.apache.flink.runtime.rpc.RpcUtils;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
-import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseStatus;
-import org.apache.flink.util.SerializedThrowable;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -126,8 +118,9 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
 			String action = request.getRequestBody().getAction();
 			String whatToWatch = request.getRequestBody().getTarget();
+			String guardClassName = request.getRequestBody().getGuardClassName();
 
-			return gateway.operateWatchpoints(jobId, action, new WatchpointTarget(whatToWatch, jobId));
+			return gateway.operateWatchpoints(jobId, action, new WatchpointCommand(action, whatToWatch, jobId, guardClassName));
 		}
 
 		@Override

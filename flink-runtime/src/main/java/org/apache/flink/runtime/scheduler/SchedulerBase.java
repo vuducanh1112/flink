@@ -88,7 +88,7 @@ import org.apache.flink.runtime.state.KeyGroupRange;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.runtime.watchpoint.WatchpointCoordinator;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.runtime.webmonitor.WebMonitorUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.InstantiationUtil;
@@ -935,7 +935,7 @@ public abstract class SchedulerBase implements SchedulerNG {
 	}
 
 	@Override
-	public void operateWatchpoints(String action, WatchpointTarget target) {
+	public void operateWatchpoints(String action, WatchpointCommand target) {
 
 		mainThreadExecutor.assertRunningInMainThread();
 

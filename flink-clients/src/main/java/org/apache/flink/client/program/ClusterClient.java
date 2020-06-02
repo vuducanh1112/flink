@@ -25,7 +25,7 @@ import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobmaster.JobResult;
 import org.apache.flink.runtime.messages.Acknowledge;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.FlinkException;
 
 import javax.annotation.Nullable;
@@ -176,7 +176,7 @@ public interface ClusterClient<T> extends AutoCloseable {
 	 * @param target watch 'input' or 'output'
 	 * @return
 	 */
-	default CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointTarget target) {
+	default CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointCommand target) {
 		throw new UnsupportedOperationException();
 	}
 

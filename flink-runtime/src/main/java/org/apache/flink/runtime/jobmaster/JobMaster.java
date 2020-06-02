@@ -85,7 +85,7 @@ import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
 import org.apache.flink.runtime.taskexecutor.slot.SlotOffer;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.InstantiationUtil;
@@ -1208,7 +1208,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 	}
 
 	@Override
-	public CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointTarget target) {
+	public CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointCommand target) {
 		schedulerNG.operateWatchpoints(action, target);
 		return CompletableFuture.completedFuture(Acknowledge.get());
 	}

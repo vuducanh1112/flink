@@ -176,6 +176,10 @@ public class CliFrontendParser {
 		"Specify whether watch/stop watching input or output " +
 			"e.g. : --target output");
 
+	static final Option WATCHPOINT_GUARD = new Option("guard", "guard", true,
+		"Specify the classname of the guard function that implements the FilterFunction interface " +
+			"e.g. : --guard com.example.MyFilter");
+
 
 	static {
 		HELP_OPTION.setRequired(false);
@@ -242,6 +246,7 @@ public class CliFrontendParser {
 
 		WATCHPOINT_ACTION.setRequired(true);
 		WATCHPOINT_ACTION_TARGET.setRequired(true);
+		WATCHPOINT_GUARD.setRequired(false);
 	}
 
 	static final Options RUN_OPTIONS = getRunCommandOptions();
@@ -327,6 +332,7 @@ public class CliFrontendParser {
 		Options options = buildGeneralOptions(new Options());
 		options.addOption(WATCHPOINT_ACTION);
 		options.addOption(WATCHPOINT_ACTION_TARGET);
+		options.addOption(WATCHPOINT_GUARD);
 		return options.addOption(JAR_OPTION);
 	}
 

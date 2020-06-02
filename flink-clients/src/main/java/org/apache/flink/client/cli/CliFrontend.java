@@ -22,6 +22,7 @@ import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.client.ClientUtils;
 import org.apache.flink.client.FlinkPipelineTranslationUtil;
@@ -50,7 +51,7 @@ import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
 import org.apache.flink.runtime.util.EnvironmentInformation;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
 
@@ -682,10 +683,11 @@ public class CliFrontend {
 
 		String[] cleanedArgs = watchpointOptions.getArgs();
 
-		WatchpointTarget watchpointTarget;
+		WatchpointCommand watchpointCommand;
 		final JobID jobId;
 		String action;
 		String whatToWatch;
+		String guard;
 
 		if (cleanedArgs.length >= 1) {
 			action = watchpointOptions.getAction();
@@ -696,6 +698,7 @@ public class CliFrontend {
 			if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
 				throw new CliArgsException("target must be either input or output");
 			}
+			guard = watchpointOptions.getGuard();
 
 			String jobIdString = cleanedArgs[0];
 
@@ -710,15 +713,17 @@ public class CliFrontend {
 			logAndSysout("Provided more arguments than required. Ignoring not needed arguments.");
 		}
 
-		watchpointTarget = new WatchpointTarget(whatToWatch, jobId);
+		if(guard == null) guard = "";
+
+		watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, guard);
 
 		runClusterAction(
 			activeCommandLine,
 			commandLine,
-			clusterClient -> operateWatchpoints(clusterClient, action, watchpointTarget));
+			clusterClient -> operateWatchpoints(clusterClient, action, watchpointCommand));
 	}
 
-	private void operateWatchpoints(ClusterClient<?> clusterClient, String action, WatchpointTarget target) throws FlinkException {
+	private void operateWatchpoints(ClusterClient<?> clusterClient, String action, WatchpointCommand target) throws FlinkException {
 		logAndSysout(action + " " + target.getWhatToWatch() + " for job " + target.getJobId() + '.');
 
 		final CompletableFuture<Acknowledge> operateWatchpointFuture = clusterClient.operateWatchpoint(target.getJobId(), action, target);

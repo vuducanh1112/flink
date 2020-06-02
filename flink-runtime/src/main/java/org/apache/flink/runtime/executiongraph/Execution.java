@@ -22,6 +22,7 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.Archiveable;
 import org.apache.flink.api.common.InputDependencyConstraint;
 import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.runtime.JobException;
@@ -1663,13 +1664,13 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput() {
+	public void startWatchingInput(FilterFunction guard) {
 		final LogicalSlot slot = assignedResource;
 
 		if (slot != null) {
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
-			taskManagerGateway.startWatchingInput(attemptId);
+			taskManagerGateway.startWatchingInput(attemptId, guard);
 		} else {
 			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
 		}
@@ -1687,13 +1688,13 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 		}
 	}
 
-	public void startWatchingOutput() {
+	public void startWatchingOutput(FilterFunction guard) {
 		final LogicalSlot slot = assignedResource;
 
 		if (slot != null) {
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
-			taskManagerGateway.startWatchingOutput(attemptId);
+			taskManagerGateway.startWatchingOutput(attemptId, guard);
 		} else {
 			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
 		}

@@ -7,7 +7,9 @@ import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-public class WatchpointTarget {
+public class WatchpointCommand {
+
+	private String action;
 
 	private String whatToWatch;
 
@@ -19,18 +21,31 @@ public class WatchpointTarget {
 
 	private ExecutionVertexID executionVertexID;
 
+	private String guardClassName;
+
 	//----------------------------------------------------------------------------------------------
 	// Constructors
 	//----------------------------------------------------------------------------------------------
 
-	public WatchpointTarget(String whatToWatch, JobID jobId) {
+	public WatchpointCommand(String action, String whatToWatch, JobID jobId) {
+		this.action = checkNotNull(action);
 		this.whatToWatch = checkNotNull(whatToWatch);
 		this.jobId = checkNotNull(jobId);
+		this.guardClassName = "";
+	}
+
+	public WatchpointCommand(String action, String whatToWatch, JobID jobId, String guardClassName) {
+		this.action = checkNotNull(action);
+		this.whatToWatch = checkNotNull(whatToWatch);
+		this.jobId = checkNotNull(jobId);
+		this.guardClassName = checkNotNull(guardClassName);
 	}
 
 	//----------------------------------------------------------------------------------------------
 	// Getters
 	//----------------------------------------------------------------------------------------------
+
+	public String getAction() { return action; }
 
 	public String getWhatToWatch() {
 		return whatToWatch;
@@ -51,4 +66,6 @@ public class WatchpointTarget {
 	public ExecutionVertexID getExecutionVertexID() {
 		return executionVertexID;
 	}
+
+	public String getGuardClassName() { return guardClassName; }
 }

@@ -44,7 +44,7 @@ import org.apache.flink.runtime.query.UnknownKvStateLocation;
 import org.apache.flink.runtime.rest.handler.legacy.backpressure.OperatorBackPressureStats;
 import org.apache.flink.runtime.state.KeyGroupRange;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
-import org.apache.flink.runtime.watchpoint.WatchpointTarget;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.FlinkException;
 
 import javax.annotation.Nullable;
@@ -134,7 +134,7 @@ public interface SchedulerNG {
 		throw new UnsupportedOperationException();
 	}
 
-	default void operateWatchpoints(String action, WatchpointTarget target) {
+	default void operateWatchpoints(String action, WatchpointCommand target) {
 		throw new UnsupportedOperationException();
 	}
 
