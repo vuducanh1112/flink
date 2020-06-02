@@ -692,21 +692,6 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 	//-------------------------------------------------------------------------
 
 	@Override
-	public CompletableFuture<Acknowledge> startWatchingInput(JobID jobId){
-
-		final StartWatchingInputHeaders startWatchingInputHeaders = StartWatchingInputHeaders.getInstance();
-		final StartWatchingInputMessageParameters startWatchingInputsMessageParameters = new StartWatchingInputMessageParameters();
-		startWatchingInputsMessageParameters.jobID.resolve(jobId);
-
-		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
-			startWatchingInputHeaders,
-			startWatchingInputsMessageParameters,
-			new StartWatchingInputRequest());
-
-		return responseFuture.thenApply(ignore -> Acknowledge.get());
-	}
-
-	@Override
 	public CompletableFuture<Acknowledge> operateWatchpoint(JobID jobId, String action, WatchpointCommand target){
 
 		final WatchpointHeaders watchpointHeaders = WatchpointHeaders.getInstance();

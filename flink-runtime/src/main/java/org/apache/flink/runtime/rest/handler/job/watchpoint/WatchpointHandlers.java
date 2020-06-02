@@ -42,64 +42,6 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 	/**
 	 * {@link TriggerHandler} implementation for starting to watch inputs.
 	 */
-	public class StartWatchingInputTriggerHandler extends TriggerHandler<RestfulGateway, StartWatchingInputRequest, StartWatchingInputMessageParameters> {
-
-		public StartWatchingInputTriggerHandler(
-				GatewayRetriever<? extends RestfulGateway> leaderRetriever,
-				Time timeout,
-				Map<String, String> responseHeaders) {
-			super(
-				leaderRetriever,
-				timeout,
-				responseHeaders,
-				StartWatchingInputHeaders.getInstance());
-		}
-
-		@Override
-		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
-			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
-
-			return gateway.startWatchingInput(jobId);
-		}
-
-		@Override
-		protected OperationKey createOperationKey(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request) {
-			return new OperationKey(new TriggerId());
-		}
-	}
-
-	/**
-	 * {@link TriggerHandler} implementation for starting to watch inputs.
-	 */
-	public class StopWatchingInputTriggerHandler extends TriggerHandler<RestfulGateway, StartWatchingInputRequest, StartWatchingInputMessageParameters> {
-
-		public StopWatchingInputTriggerHandler(
-			GatewayRetriever<? extends RestfulGateway> leaderRetriever,
-			Time timeout,
-			Map<String, String> responseHeaders) {
-			super(
-				leaderRetriever,
-				timeout,
-				responseHeaders,
-				StartWatchingInputHeaders.getInstance());
-		}
-
-		@Override
-		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
-			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
-
-			return gateway.stopWatchingInput(jobId);
-		}
-
-		@Override
-		protected OperationKey createOperationKey(HandlerRequest<StartWatchingInputRequest, StartWatchingInputMessageParameters> request) {
-			return new OperationKey(new TriggerId());
-		}
-	}
-
-	/**
-	 * {@link TriggerHandler} implementation for starting to watch inputs.
-	 */
 	public class WatchpointOperationTriggerHandler extends TriggerHandler<RestfulGateway, WatchpointRequest, WatchpointMessageParameters> {
 
 		public WatchpointOperationTriggerHandler(

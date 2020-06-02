@@ -189,10 +189,6 @@ public interface RestfulGateway extends RpcGateway {
 	}
 
 
-	default CompletableFuture<Acknowledge> startWatchingInput(JobID jobId) {throw new UnsupportedOperationException();}
-
-	default CompletableFuture<Acknowledge> stopWatchingInput(JobID jobId) {throw new UnsupportedOperationException();}
-
 	default CompletableFuture<Acknowledge> operateWatchpoints(JobID jobId, String action, WatchpointCommand target) {throw new UnsupportedOperationException();}
 
 }

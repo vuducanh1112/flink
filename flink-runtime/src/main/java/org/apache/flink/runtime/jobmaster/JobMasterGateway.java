@@ -272,11 +272,6 @@ public interface JobMasterGateway extends
 	 */
 	CompletableFuture<Object> updateGlobalAggregate(String aggregateName, Object aggregand, byte[] serializedAggregationFunction);
 
-
-	default CompletableFuture<Acknowledge> startWatchingInput() {throw new UnsupportedOperationException();}
-
-	default CompletableFuture<Acknowledge> stopWatchingInput() {throw new UnsupportedOperationException();}
-
 	default CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointCommand target) {throw new UnsupportedOperationException();}
 
 }

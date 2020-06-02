@@ -126,14 +126,6 @@ public interface SchedulerNG {
 	// Watchpoint
 	//----------------------------------------------------------------------------------------------
 
-	default void startWatchingInput() {
-		throw new UnsupportedOperationException();
-	}
-
-	default void stopWatchingInput() {
-		throw new UnsupportedOperationException();
-	}
-
 	default void operateWatchpoints(String action, WatchpointCommand target) {
 		throw new UnsupportedOperationException();
 	}

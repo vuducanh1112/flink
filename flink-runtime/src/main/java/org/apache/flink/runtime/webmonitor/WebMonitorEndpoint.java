@@ -538,16 +538,6 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 
 		final WatchpointHandlers watchpointHandlers = new WatchpointHandlers();
 
-		final WatchpointHandlers.StartWatchingInputTriggerHandler startWatchingInputTriggerHandler = watchpointHandlers.new StartWatchingInputTriggerHandler(
-			leaderRetriever,
-			timeout,
-			responseHeaders);
-
-		final WatchpointHandlers.StopWatchingInputTriggerHandler stopWatchingInputTriggerHandler = watchpointHandlers.new StopWatchingInputTriggerHandler(
-			leaderRetriever,
-			timeout,
-			responseHeaders);
-
 		final WatchpointHandlers.WatchpointOperationTriggerHandler watchpointOperationTriggerHandler = watchpointHandlers.new WatchpointOperationTriggerHandler(
 			leaderRetriever,
 			timeout,
@@ -612,8 +602,6 @@ public class WebMonitorEndpoint<T extends RestfulGateway> extends RestServerEndp
 		handlers.add(Tuple2.of(savepointDisposalTriggerHandler.getMessageHeaders(), savepointDisposalTriggerHandler));
 		handlers.add(Tuple2.of(savepointDisposalStatusHandler.getMessageHeaders(), savepointDisposalStatusHandler));
 
-		handlers.add(Tuple2.of(startWatchingInputTriggerHandler.getMessageHeaders(), startWatchingInputTriggerHandler));
-		handlers.add(Tuple2.of(stopWatchingInputTriggerHandler.getMessageHeaders(), stopWatchingInputTriggerHandler));
 		handlers.add(Tuple2.of(watchpointOperationTriggerHandler.getMessageHeaders(), watchpointOperationTriggerHandler));
 
 		// TODO: Remove once the Yarn proxy can forward all REST verbs

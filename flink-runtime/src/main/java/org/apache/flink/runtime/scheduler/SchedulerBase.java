@@ -905,36 +905,6 @@ public abstract class SchedulerBase implements SchedulerNG {
 	//----------------------------------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput() {
-
-		mainThreadExecutor.assertRunningInMainThread();
-
-		final WatchpointCoordinator watchpointCoordinator = executionGraph.getWatchpointCoordinator();
-		if (watchpointCoordinator == null) {
-			throw new IllegalStateException(
-				String.format("Job %s is no streaming job.", jobGraph.getJobID()));
-		}
-
-		watchpointCoordinator.startWatchingInput();
-
-	}
-
-	@Override
-	public void stopWatchingInput() {
-
-		mainThreadExecutor.assertRunningInMainThread();
-
-		final WatchpointCoordinator watchpointCoordinator = executionGraph.getWatchpointCoordinator();
-		if (watchpointCoordinator == null) {
-			throw new IllegalStateException(
-				String.format("Job %s is no streaming job.", jobGraph.getJobID()));
-		}
-
-		watchpointCoordinator.stopWatchingInput();
-
-	}
-
-	@Override
 	public void operateWatchpoints(String action, WatchpointCommand target) {
 
 		mainThreadExecutor.assertRunningInMainThread();
