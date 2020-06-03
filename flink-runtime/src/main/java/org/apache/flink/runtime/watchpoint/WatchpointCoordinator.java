@@ -50,20 +50,12 @@ public class WatchpointCoordinator {
 	public void operateWatchpoint(String action, WatchpointCommand target) {
 		switch(action){
 			case "startWatching":
-				FilterFunction guard;
-				try{
-					guard = loadFilterFunction(target.getGuardClassName());
-				}catch(Exception e){
-					LOG.warn("filter function " + target.getGuardClassName() + " could not be loaded");
-					guard = (x) -> true;
-				}
-
 				switch(target.getWhatToWatch()){
 					case "input":
-						startWatchingInput(guard);
+						startWatchingInput(target.getGuardClassName());
 						break;
 					case "output":
-						startWatchingOutput(guard);
+						startWatchingOutput(target.getGuardClassName());
 						break;
 				}
 				break;
@@ -82,13 +74,13 @@ public class WatchpointCoordinator {
 		}
 	}
 
-	public void startWatchingInput(FilterFunction guard) {
+	public void startWatchingInput(String guardClassName) {
 
 		LOG.info("Start watching input of tasks");
 
 		for(ExecutionJobVertex executionJobVertex : tasks.values()){
 			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingInput(guard);
+				executionVertex.getCurrentExecutionAttempt().startWatchingInput(guardClassName);
 			}
 		}
 	}
@@ -104,13 +96,13 @@ public class WatchpointCoordinator {
 		}
 	}
 
-	public void startWatchingOutput(FilterFunction guard) {
+	public void startWatchingOutput(String guardClassName) {
 
 		LOG.info("Start watching output of tasks");
 
 		for(ExecutionJobVertex executionJobVertex : tasks.values()){
 			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingOutput(guard);
+				executionVertex.getCurrentExecutionAttempt().startWatchingOutput(guardClassName);
 			}
 		}
 	}

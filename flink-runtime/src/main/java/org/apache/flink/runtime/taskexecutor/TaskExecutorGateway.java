@@ -214,11 +214,11 @@ public interface TaskExecutorGateway extends RpcGateway {
 	 */
 	CompletableFuture<Boolean> canBeReleased();
 
-	void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
+	void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName);
 
 	void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
-	void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
+	void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName);
 
 	void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
 

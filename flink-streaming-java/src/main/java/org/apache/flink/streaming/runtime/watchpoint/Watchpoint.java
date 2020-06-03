@@ -3,11 +3,15 @@ package org.apache.flink.streaming.runtime.watchpoint;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
+import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+import org.apache.flink.util.FlinkException;
 
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.sql.Timestamp;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -32,10 +36,6 @@ public class Watchpoint {
 
 	private String identifier; //adopted from flink metric identifiers
 
-	private Object inputInstance;
-
-	private Object outputInstance;
-
 	// ------------------------------------------------------------------------
 	//  Constructors
 	// ------------------------------------------------------------------------
@@ -53,8 +53,6 @@ public class Watchpoint {
 		this.isWatchingInput = false;
 		this.isWatchingOutput = false;
 
-		this.inputInstance = operator.getOperatorConfig().getTypeSerializerIn1(operator.getUserCodeClassloader()).createInstance();
-		this.outputInstance = operator.getOperatorConfig().getTypeSerializerOut(operator.getUserCodeClassloader()).createInstance();
 	}
 
 	// ------------------------------------------------------------------------
@@ -89,7 +87,13 @@ public class Watchpoint {
 	//  Utility
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(FilterFunction guard) {
+	public void startWatchingInput(String guardClassName) {
+		FilterFunction guard;
+		try{
+			guard = loadFilterFunction(guardClassName);
+		}catch(Exception e){
+			guard = (x) -> true;
+		}
 		setGuardIN(guard);
 		this.isWatchingInput = true;
 	}
@@ -98,7 +102,13 @@ public class Watchpoint {
 		this.isWatchingInput = false;
 	}
 
-	public void startWatchingOutput(FilterFunction guard) {
+	public void startWatchingOutput(String guardClassName) {
+		FilterFunction guard;
+		try{
+			guard = loadFilterFunction(guardClassName);
+		}catch(Exception e){
+			guard = (x) -> true;
+		}
 		setGuardOUT(guard);
 		this.isWatchingOutput = true;
 	}
@@ -111,6 +121,48 @@ public class Watchpoint {
 		this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
 	}
 
+	private FilterFunction loadFilterFunction(String className) throws Exception{
+
+		if(className == ""){
+			return (x) -> true;
+		}
+
+		//ClassLoader classLoader = FilterFunction.class.getClassLoader();
+		ClassLoader classLoader = operator.getUserCodeClassloader();
+		final Class<? extends FilterFunction> filterFunctionClass;
+		try {
+			filterFunctionClass = Class.forName(className, true, classLoader)
+				.asSubclass(FilterFunction.class);
+		} catch (Throwable t) {
+			throw new Exception("Could not load the filter function " + className + ".", t);
+		}
+
+		Constructor<? extends FilterFunction> statelessCtor;
+
+		try {
+			statelessCtor = filterFunctionClass.getConstructor();
+		} catch (NoSuchMethodException ee) {
+			throw new FlinkException("Task misses proper constructor", ee);
+		}
+
+		// instantiate the class
+		try {
+			//noinspection ConstantConditions  --> cannot happen
+			FilterFunction filterFunction =  statelessCtor.newInstance();
+			System.out.println("start test");
+			if(filterFunction.filter("hello")){
+				System.out.println("hello");
+			}
+			if(filterFunction.filter("no")){
+				System.out.println("no");
+			}
+			return filterFunction;
+		} catch (Exception e) {
+			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);
+		}
+
+	}
+
 	// ------------------------------------------------------------------------
 	//  Setter and Getter
 	// ------------------------------------------------------------------------
@@ -119,7 +171,6 @@ public class Watchpoint {
 
 		try{
 			this.guardIN = checkNotNull(guardIN);
-			guardIN.filter(this.inputInstance);
 		}catch (Exception e){
 			this.guardIN = (x) -> true;
 		}
@@ -130,7 +181,6 @@ public class Watchpoint {
 
 		try{
 			this.guardOUT = checkNotNull(guardOUT);
-			guardOUT.filter(this.inputInstance);
 		}catch (Exception e){
 			this.guardOUT = (x) -> true;
 		}

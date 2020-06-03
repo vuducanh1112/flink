@@ -955,12 +955,12 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	// ----------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard){
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName){
 
 		final Task task = taskSlotTable.getTask(executionAttemptID);
 
 		if (task != null) {
-			task.startWatchingInput(guard);
+			task.startWatchingInput(guardClassName);
 
 		} else {
 			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
@@ -987,12 +987,12 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	}
 
 	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard){
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName){
 
 		final Task task = taskSlotTable.getTask(executionAttemptID);
 
 		if (task != null) {
-			task.startWatchingOutput(guard);
+			task.startWatchingOutput(guardClassName);
 
 		} else {
 			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';

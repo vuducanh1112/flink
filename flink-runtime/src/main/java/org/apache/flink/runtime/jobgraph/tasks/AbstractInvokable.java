@@ -264,7 +264,7 @@ public abstract class AbstractInvokable {
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(FilterFunction guard){
+	public void startWatchingInput(String guardClassName){
 		//do nothing
 	}
 
@@ -272,7 +272,7 @@ public abstract class AbstractInvokable {
 		//do nothing
 	}
 
-	public void startWatchingOutput(FilterFunction guard){
+	public void startWatchingOutput(String guardClassName){
 		//do nothing
 	}
 

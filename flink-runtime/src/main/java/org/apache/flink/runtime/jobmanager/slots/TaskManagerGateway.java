@@ -149,11 +149,11 @@ public interface TaskManagerGateway {
 		@RpcTimeout final Time timeout);
 
 
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName);
 
 	public void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard);
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName);
 
 	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
 

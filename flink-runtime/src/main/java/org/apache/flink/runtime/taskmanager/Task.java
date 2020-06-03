@@ -1520,16 +1520,16 @@ public class Task implements Runnable, TaskSlotPayload, TaskActions, PartitionPr
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(FilterFunction guard){
-		invokable.startWatchingInput(guard);
+	public void startWatchingInput(String guardClassName){
+		invokable.startWatchingInput(guardClassName);
 	}
 
 	public void stopWatchingInput(){
 		invokable.stopWatchingInput();
 	}
 
-	public void startWatchingOutput(FilterFunction guard){
-		invokable.startWatchingOutput(guard);
+	public void startWatchingOutput(String guardClassName){
+		invokable.startWatchingOutput(guardClassName);
 	}
 
 	public void stopWatchingOutput(){

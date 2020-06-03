@@ -109,8 +109,8 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 	}
 
 	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, FilterFunction guard) {
-		taskExecutorGateway.startWatchingInput(executionAttemptID, guard);
+	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName) {
+		taskExecutorGateway.startWatchingInput(executionAttemptID, guardClassName);
 	}
 
 	@Override
@@ -119,8 +119,8 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 	}
 
 	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, FilterFunction guard) {
-		taskExecutorGateway.startWatchingOutput(executionAttemptID, guard);
+	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName) {
+		taskExecutorGateway.startWatchingOutput(executionAttemptID, guardClassName);
 	}
 
 	@Override

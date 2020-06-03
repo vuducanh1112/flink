@@ -1664,13 +1664,13 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(FilterFunction guard) {
+	public void startWatchingInput(String guardClassName) {
 		final LogicalSlot slot = assignedResource;
 
 		if (slot != null) {
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
-			taskManagerGateway.startWatchingInput(attemptId, guard);
+			taskManagerGateway.startWatchingInput(attemptId, guardClassName);
 		} else {
 			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
 		}
@@ -1688,13 +1688,13 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 		}
 	}
 
-	public void startWatchingOutput(FilterFunction guard) {
+	public void startWatchingOutput(String guardClassName) {
 		final LogicalSlot slot = assignedResource;
 
 		if (slot != null) {
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
-			taskManagerGateway.startWatchingOutput(attemptId, guard);
+			taskManagerGateway.startWatchingOutput(attemptId, guardClassName);
 		} else {
 			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
 		}

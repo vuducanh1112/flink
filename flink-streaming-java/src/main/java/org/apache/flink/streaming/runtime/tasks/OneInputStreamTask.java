@@ -200,9 +200,9 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 	// ------------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(FilterFunction guard) {
+	public void startWatchingInput(String guardClassName) {
 		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
-		operator.getWatchpoint().startWatchingInput(guard);
+		operator.getWatchpoint().startWatchingInput(guardClassName);
 	}
 
 	@Override
@@ -212,9 +212,9 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 	}
 
 	@Override
-	public void startWatchingOutput(FilterFunction guard) {
+	public void startWatchingOutput(String guardClassName) {
 		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
-		operator.getWatchpoint().startWatchingOutput(guard);
+		operator.getWatchpoint().startWatchingOutput(guardClassName);
 	}
 
 	@Override
