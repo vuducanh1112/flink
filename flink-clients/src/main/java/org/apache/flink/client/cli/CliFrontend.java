@@ -683,38 +683,27 @@ public class CliFrontend {
 
 		final CustomCommandLine activeCommandLine = getActiveCustomCommandLine(commandLine);
 
-		String[] cleanedArgs = watchpointOptions.getArgs();
-
-		WatchpointCommand watchpointCommand;
-
-		String action;
-		String whatToWatch;
-		String guard;
-		final JobID jobId;
-		final JobVertexID taskId;
-		Integer subtaskIndex;
-		final OperatorID operatorId;
-
-		action = watchpointOptions.getAction();
+		String action = watchpointOptions.getAction();
 		if(action.equals("startWatching") == false && action.equals("stopWatching") == false){
 			throw new CliArgsException("action must be either startWatching or stopWatching");
 		}
-		whatToWatch = watchpointOptions.getTarget();
+		String whatToWatch = watchpointOptions.getTarget();
 		if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
 			throw new CliArgsException("target must be either input or output");
 		}
-		guard = watchpointOptions.getGuard() == null ? "" : watchpointOptions.getGuard();
-		jobId = JobID.fromHexString(watchpointOptions.getJobId());
-		taskId = watchpointOptions.getTaskId() == null ? null : JobVertexID.fromHexString(watchpointOptions.getTaskId());
-		subtaskIndex = watchpointOptions.getSubtaskIndex() == null ? null : Integer.parseInt(watchpointOptions.getSubtaskIndex());
-		operatorId = null;
 
-		// Print superfluous arguments
-		if (cleanedArgs.length >= 1) {
-			logAndSysout("Provided more arguments than required. Ignoring not needed arguments.");
-		}
+		JobID jobId = parseJobId(watchpointOptions.getJobId());
 
-		watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guard);
+		String taskIdString = watchpointOptions.getTaskId();
+		JobVertexID taskId = taskIdString == null ? null : JobVertexID.fromHexString(taskIdString);
+
+		String subtaskIndexString = watchpointOptions.getSubtaskIndex();
+		Integer subtaskIndex = subtaskIndexString == null ? null : Integer.parseInt(subtaskIndexString);
+		OperatorID operatorId = null;
+
+		String guard = watchpointOptions.getGuard();
+
+		WatchpointCommand watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guard);
 
 		runClusterAction(
 			activeCommandLine,
