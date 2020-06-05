@@ -352,6 +352,9 @@ public class CliFrontendParser {
 		Options options = buildGeneralOptions(new Options());
 		options.addOption(WATCHPOINT_ACTION);
 		options.addOption(WATCHPOINT_ACTION_TARGET);
+		options.addOption(WATCHPOINT_JOB_ID);
+		options.addOption(WATCHPOINT_TASK_ID);
+		options.addOption(WATCHPOINT_SUBTASK_INDEX);
 		options.addOption(WATCHPOINT_GUARD);
 		return options.addOption(JAR_OPTION);
 	}
