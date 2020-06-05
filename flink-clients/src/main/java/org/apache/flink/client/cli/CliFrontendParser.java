@@ -180,6 +180,22 @@ public class CliFrontendParser {
 		"Specify the classname of the guard function that implements the FilterFunction interface " +
 			"e.g. : --guard com.example.MyFilter");
 
+	static final Option WATCHPOINT_JOB_ID = new Option("job", "job", true,
+		"Specify the job " +
+			"e.g. : --job 2390ffnvi94c9v");
+
+	static final Option WATCHPOINT_OPERATOR_ID = new Option("op", "operator", true,
+		"Specify operator " +
+			"e.g. : --operator 567ik");
+
+	static final Option WATCHPOINT_TASK_ID = new Option("task", "task", true,
+		"Specify the task (jobvertex) " +
+			"e.g. : --task 12345");
+
+	static final Option WATCHPOINT_SUBTASK_INDEX = new Option("subtask", "subtask", true,
+		"Specify the subtask " +
+			"e.g. : --subtask 0");
+
 
 	static {
 		HELP_OPTION.setRequired(false);
@@ -247,6 +263,10 @@ public class CliFrontendParser {
 		WATCHPOINT_ACTION.setRequired(true);
 		WATCHPOINT_ACTION_TARGET.setRequired(true);
 		WATCHPOINT_GUARD.setRequired(false);
+		WATCHPOINT_JOB_ID.setRequired(true);
+		WATCHPOINT_TASK_ID.setRequired(false);
+		WATCHPOINT_OPERATOR_ID.setRequired(false);
+		WATCHPOINT_SUBTASK_INDEX.setRequired(false);
 	}
 
 	static final Options RUN_OPTIONS = getRunCommandOptions();

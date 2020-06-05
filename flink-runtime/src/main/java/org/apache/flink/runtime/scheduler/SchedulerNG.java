@@ -126,7 +126,7 @@ public interface SchedulerNG {
 	// Watchpoint
 	//----------------------------------------------------------------------------------------------
 
-	default void operateWatchpoints(String action, WatchpointCommand target) {
+	default void operateWatchpoints(WatchpointCommand watchpointCommand) {
 		throw new UnsupportedOperationException();
 	}
 

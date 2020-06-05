@@ -905,7 +905,7 @@ public abstract class SchedulerBase implements SchedulerNG {
 	//----------------------------------------------------------------------------------------------
 
 	@Override
-	public void operateWatchpoints(String action, WatchpointCommand target) {
+	public void operateWatchpoints(WatchpointCommand watchpointCommand) {
 
 		mainThreadExecutor.assertRunningInMainThread();
 
@@ -915,7 +915,7 @@ public abstract class SchedulerBase implements SchedulerNG {
 				String.format("Job %s is no streaming job.", jobGraph.getJobID()));
 		}
 
-		watchpointCoordinator.operateWatchpoint(action, target);
+		watchpointCoordinator.operateWatchpoint(watchpointCommand);
 
 	}
 

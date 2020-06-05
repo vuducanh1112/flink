@@ -47,6 +47,8 @@ import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.plugin.PluginUtils;
 import org.apache.flink.runtime.akka.AkkaUtils;
 import org.apache.flink.runtime.client.JobStatusMessage;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.security.SecurityConfiguration;
 import org.apache.flink.runtime.security.SecurityUtils;
@@ -684,59 +686,56 @@ public class CliFrontend {
 		String[] cleanedArgs = watchpointOptions.getArgs();
 
 		WatchpointCommand watchpointCommand;
-		final JobID jobId;
+
 		String action;
 		String whatToWatch;
 		String guard;
+		final JobID jobId;
+		final JobVertexID taskId;
+		Integer subtaskIndex;
+		final OperatorID operatorId;
 
-		if (cleanedArgs.length >= 1) {
-			action = watchpointOptions.getAction();
-			if(action.equals("startWatching") == false && action.equals("stopWatching") == false){
-				throw new CliArgsException("action must be either startWatching or stopWatching");
-			}
-			whatToWatch = watchpointOptions.getTarget();
-			if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
-				throw new CliArgsException("target must be either input or output");
-			}
-			guard = watchpointOptions.getGuard();
-
-			String jobIdString = cleanedArgs[0];
-
-			jobId = parseJobId(jobIdString);
-		} else {
-			throw new CliArgsException("Missing JobID. " +
-				"Specify a Job ID to trigger a savepoint.");
+		action = watchpointOptions.getAction();
+		if(action.equals("startWatching") == false && action.equals("stopWatching") == false){
+			throw new CliArgsException("action must be either startWatching or stopWatching");
 		}
+		whatToWatch = watchpointOptions.getTarget();
+		if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
+			throw new CliArgsException("target must be either input or output");
+		}
+		guard = watchpointOptions.getGuard() == null ? "" : watchpointOptions.getGuard();
+		jobId = JobID.fromHexString(watchpointOptions.getJobId());
+		taskId = watchpointOptions.getTaskId() == null ? null : JobVertexID.fromHexString(watchpointOptions.getTaskId());
+		subtaskIndex = watchpointOptions.getSubtaskIndex() == null ? null : Integer.parseInt(watchpointOptions.getSubtaskIndex());
+		operatorId = null;
 
 		// Print superfluous arguments
-		if (cleanedArgs.length >= 4) {
+		if (cleanedArgs.length >= 1) {
 			logAndSysout("Provided more arguments than required. Ignoring not needed arguments.");
 		}
 
-		if(guard == null) guard = "";
-
-		watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, guard);
+		watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guard);
 
 		runClusterAction(
 			activeCommandLine,
 			commandLine,
-			clusterClient -> operateWatchpoints(clusterClient, action, watchpointCommand));
+			clusterClient -> operateWatchpoints(clusterClient, watchpointCommand));
 	}
 
-	private void operateWatchpoints(ClusterClient<?> clusterClient, String action, WatchpointCommand target) throws FlinkException {
-		logAndSysout(action + " " + target.getWhatToWatch() + " for job " + target.getJobId() + '.');
+	private void operateWatchpoints(ClusterClient<?> clusterClient, WatchpointCommand watchpointCommand) throws FlinkException {
+		logAndSysout(watchpointCommand.getAction() + " " + watchpointCommand.getWhatToWatch() + " for job " + watchpointCommand.getJobId() + '.');
 
-		final CompletableFuture<Acknowledge> operateWatchpointFuture = clusterClient.operateWatchpoint(target.getJobId(), action, target);
+		final CompletableFuture<Acknowledge> operateWatchpointFuture = clusterClient.operateWatchpoint(watchpointCommand);
 
 		logAndSysout("Waiting for response...");
 
 		try {
 			operateWatchpointFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
-			throw new FlinkException("Failed to start watching input.", e);
+			throw new FlinkException("Failed to do " + watchpointCommand.getAction() , e);
 		}
 
-		logAndSysout("Starting to watch input.");
+		logAndSysout("Starting " + watchpointCommand.getAction());
 
 	}
 

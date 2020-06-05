@@ -1,15 +1,12 @@
 package org.apache.flink.runtime.watchpoint;
 
 import org.apache.flink.api.common.JobID;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.util.FlinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -47,20 +44,20 @@ public class WatchpointCoordinator {
 	// Watchpoint operations
 	//----------------------------------------------------------------------------------------------
 
-	public void operateWatchpoint(String action, WatchpointCommand target) {
-		switch(action){
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
+		switch(watchpointCommand.getAction()){
 			case "startWatching":
-				switch(target.getWhatToWatch()){
+				switch(watchpointCommand.getWhatToWatch()){
 					case "input":
-						startWatchingInput(target.getGuardClassName());
+						startWatchingInput(watchpointCommand.getGuardClassName());
 						break;
 					case "output":
-						startWatchingOutput(target.getGuardClassName());
+						startWatchingOutput(watchpointCommand.getGuardClassName());
 						break;
 				}
 				break;
 			case "stopWatching":
-				switch(target.getWhatToWatch()){
+				switch(watchpointCommand.getWhatToWatch()){
 					case "input":
 						stopWatchingInput();
 						break;
@@ -70,7 +67,7 @@ public class WatchpointCoordinator {
 				}
 				break;
 			default:
-				throw new UnsupportedOperationException("action " + action + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
+				throw new UnsupportedOperationException("action " + watchpointCommand.getAction() + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
 		}
 	}
 
@@ -118,50 +115,23 @@ public class WatchpointCoordinator {
 		}
 	}
 
+
+	public void operateWatchpoint(JobVertexID taskId, WatchpointCommand watchpointCommand) {
+
+		ExecutionJobVertex task = tasks.get(taskId);
+		if (task == null) {
+			throw new IllegalStateException(
+				String.format("No task with id %s.", taskId));
+		}
+
+
+
+	}
+
 	//----------------------------------------------------------------------------------------------
 	// Helper
 	//----------------------------------------------------------------------------------------------
 
-	private FilterFunction loadFilterFunction(String className) throws Exception{
 
-		if(className == ""){
-			return (x) -> true;
-		}
-
-
-		ClassLoader classLoader = FilterFunction.class.getClassLoader();
-		final Class<? extends FilterFunction> filterFunctionClass;
-		try {
-			filterFunctionClass = Class.forName(className, true, classLoader)
-				.asSubclass(FilterFunction.class);
-		} catch (Throwable t) {
-			throw new Exception("Could not load the filter function " + className + ".", t);
-		}
-
-		Constructor<? extends FilterFunction> statelessCtor;
-
-		try {
-			statelessCtor = filterFunctionClass.getConstructor();
-		} catch (NoSuchMethodException ee) {
-			throw new FlinkException("Task misses proper constructor", ee);
-		}
-
-		// instantiate the class
-		try {
-			//noinspection ConstantConditions  --> cannot happen
-			FilterFunction filterFunction =  statelessCtor.newInstance();
-			System.out.println("start test");
-			if(filterFunction.filter("hello")){
-				System.out.println("hello");
-			}
-			if(filterFunction.filter("no")){
-				System.out.println("no");
-			}
-			return filterFunction;
-		} catch (Exception e) {
-			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);
-		}
-
-	}
 
 }

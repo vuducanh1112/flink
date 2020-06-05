@@ -19,6 +19,7 @@
 package org.apache.flink.client.cli;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.flink.api.common.JobID;
 
 import static org.apache.flink.client.cli.CliFrontendParser.*;
 
@@ -32,6 +33,10 @@ public class WatchpointOptions extends CommandLineOptions {
 	private String action;
 	private String target;
 	private String guard;
+	private String jobId;
+	private String operatorId;
+	private String taskId;
+	private String subtaskIndex;
 
 	private String jarFile;
 
@@ -41,6 +46,9 @@ public class WatchpointOptions extends CommandLineOptions {
 		action = line.getOptionValue(WATCHPOINT_ACTION.getOpt());
 		target = line.getOptionValue(WATCHPOINT_ACTION_TARGET.getOpt());
 		guard = line.getOptionValue(WATCHPOINT_GUARD.getOpt());
+		jobId = line.getOptionValue(WATCHPOINT_JOB_ID.getOpt());
+		operatorId = line.getOptionValue(WATCHPOINT_OPERATOR_ID.getOpt());
+		taskId = line.getOptionValue(WATCHPOINT_TASK_ID.getOpt());
 		jarFile = line.getOptionValue(JAR_OPTION.getOpt());
 	}
 
@@ -56,6 +64,23 @@ public class WatchpointOptions extends CommandLineOptions {
 		return target;
 	}
 
-	public String getGuard() { return guard; }
+	public String getGuard() {
+		return guard;
+	}
 
+	public String getJobId() {
+		return jobId;
+	}
+
+	public String getOperatorId() {
+		return operatorId;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public String getSubtaskIndex() {
+		return subtaskIndex;
+	}
 }

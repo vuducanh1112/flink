@@ -75,7 +75,7 @@ public class Watchpoint {
 		if(isWatchingOutput){
 			try{
 				if(guardOUT.filter(outStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize(outStreamRecord.toString()));
+					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + outStreamRecord.toString() + "\n"));
 				}
 			}catch(Exception e){
 				e.printStackTrace(System.err);
@@ -92,6 +92,7 @@ public class Watchpoint {
 		try{
 			guard = loadFilterFunction(guardClassName);
 		}catch(Exception e){
+			e.printStackTrace();
 			guard = (x) -> true;
 		}
 		setGuardIN(guard);
@@ -107,6 +108,7 @@ public class Watchpoint {
 		try{
 			guard = loadFilterFunction(guardClassName);
 		}catch(Exception e){
+			e.printStackTrace();
 			guard = (x) -> true;
 		}
 		setGuardOUT(guard);
@@ -149,13 +151,6 @@ public class Watchpoint {
 		try {
 			//noinspection ConstantConditions  --> cannot happen
 			FilterFunction filterFunction =  statelessCtor.newInstance();
-			System.out.println("start test");
-			if(filterFunction.filter("hello")){
-				System.out.println("hello");
-			}
-			if(filterFunction.filter("no")){
-				System.out.println("no");
-			}
 			return filterFunction;
 		} catch (Exception e) {
 			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);

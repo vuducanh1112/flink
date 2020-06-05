@@ -20,6 +20,8 @@ package org.apache.flink.runtime.rest.handler.job.watchpoint;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.rest.handler.HandlerRequest;
 import org.apache.flink.runtime.rest.handler.RestHandlerException;
@@ -57,12 +59,15 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 
 		@Override
 		protected CompletableFuture<Acknowledge> triggerOperation(HandlerRequest<WatchpointRequest, WatchpointMessageParameters> request, RestfulGateway gateway) throws RestHandlerException {
-			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
 			String action = request.getRequestBody().getAction();
 			String whatToWatch = request.getRequestBody().getTarget();
 			String guardClassName = request.getRequestBody().getGuardClassName();
+			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
+			final JobVertexID taskId = request.getPathParameter(JobVertexIdPathParameter.class);
+			final Integer subtaskIndex = request.getPathParameter(SubtaskIndexPathParameter.class);
+			OperatorID operatorId = null;
 
-			return gateway.operateWatchpoints(jobId, action, new WatchpointCommand(action, whatToWatch, jobId, guardClassName));
+			return gateway.operateWatchpoints(new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guardClassName));
 		}
 
 		@Override

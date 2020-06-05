@@ -15,11 +15,17 @@ public class WatchpointCommand {
 
 	private JobID jobId;
 
-	private OperatorID operatorID;
+	private OperatorID operatorId;
 
-	private JobVertexID jobVertexID;
+	private boolean hasOperatorId = false;
 
-	private ExecutionVertexID executionVertexID;
+	private JobVertexID taskId;
+
+	private boolean hasTaskId = false;
+
+	private Integer subtaskIndex;
+
+	private boolean hasSubTaskIndex = false;
 
 	private String guardClassName;
 
@@ -41,6 +47,39 @@ public class WatchpointCommand {
 		this.guardClassName = checkNotNull(guardClassName);
 	}
 
+
+	public WatchpointCommand(
+		String action,
+		String whatToWatch,
+		JobID jobId,
+		JobVertexID taskId,
+		Integer subtaskIndex,
+		OperatorID operatorId,
+		String guardClassName) {
+
+		this(action, whatToWatch, jobId);
+
+		if(guardClassName == null) {
+			this.guardClassName = "";
+		}
+
+		if(taskId != null){
+			this.taskId = taskId;
+			this.hasTaskId = true;
+		}
+
+		if(subtaskIndex != null){
+			this.subtaskIndex = subtaskIndex;
+			this.hasSubTaskIndex = true;
+		}
+
+		if(operatorId != null){
+			this.operatorId = operatorId;
+			this.hasOperatorId = true;
+		}
+
+	}
+
 	//----------------------------------------------------------------------------------------------
 	// Getters
 	//----------------------------------------------------------------------------------------------
@@ -55,17 +94,22 @@ public class WatchpointCommand {
 		return jobId;
 	}
 
-	public OperatorID getOperatorID() {
-		return operatorID;
+	public OperatorID getOperatorId() {
+		return operatorId;
 	}
 
-	public JobVertexID getJobVertexID() {
-		return jobVertexID;
+	public JobVertexID getTaskId() {
+		return taskId;
 	}
 
-	public ExecutionVertexID getExecutionVertexID() {
-		return executionVertexID;
-	}
+	public Integer getSubtaskIndex() { return subtaskIndex; }
 
 	public String getGuardClassName() { return guardClassName; }
+
+	public boolean hasOperatorId() { return hasOperatorId; }
+
+	public boolean hasTaskId() { return hasTaskId; }
+
+	public boolean hasSubTaskIndex() { return hasSubTaskIndex; }
+
 }

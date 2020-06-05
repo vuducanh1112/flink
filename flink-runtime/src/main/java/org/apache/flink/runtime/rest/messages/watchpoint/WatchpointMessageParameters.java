@@ -22,18 +22,18 @@ import org.apache.flink.runtime.rest.messages.*;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Message parameters for subtask REST handlers.
  */
-public class WatchpointMessageParameters extends JobMessageParameters {
+public class WatchpointMessageParameters extends MessageParameters {
 
-	/**
 	public final JobIDPathParameter jobId = new JobIDPathParameter();
 
 	public final JobVertexIdPathParameter jobVertexIdPathParameter = new JobVertexIdPathParameter();
 
-	protected final SubtaskIndexPathParameter subtaskIndexPathParameter = new SubtaskIndexPathParameter();
+	public final SubtaskIndexPathParameter subtaskIndexPathParameter = new SubtaskIndexPathParameter();
 
 	public final WatchpointActionParameter watchpointActionParameter = new WatchpointActionParameter();
 
@@ -41,7 +41,12 @@ public class WatchpointMessageParameters extends JobMessageParameters {
 
 	@Override
 	public Collection<MessagePathParameter<?>> getPathParameters() {
-		return Arrays.asList(jobId, watchpointActionParameter, watchpointTargetParameter);
+		return Arrays.asList(watchpointActionParameter, watchpointTargetParameter, jobId, jobVertexIdPathParameter, subtaskIndexPathParameter);
 	}
-	**/
+
+	@Override
+	public Collection<MessageQueryParameter<?>> getQueryParameters() {
+		return Collections.emptySet();
+	}
+
 }

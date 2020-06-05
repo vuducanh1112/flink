@@ -862,12 +862,12 @@ public abstract class Dispatcher extends PermanentlyFencedRpcEndpoint<Dispatcher
 	//------------------------------------------------------
 
 	@Override
-	public CompletableFuture<Acknowledge> operateWatchpoints(JobID jobId, String action, WatchpointCommand target) {
-		final CompletableFuture<JobMasterGateway> jobMasterGatewayFuture = getJobMasterGatewayFuture(jobId);
+	public CompletableFuture<Acknowledge> operateWatchpoints(WatchpointCommand watchpointCommand) {
+		final CompletableFuture<JobMasterGateway> jobMasterGatewayFuture = getJobMasterGatewayFuture(watchpointCommand.getJobId());
 
 		return jobMasterGatewayFuture.thenCompose(
 			(JobMasterGateway jobMasterGateway) ->
-				jobMasterGateway.operateWatchpoints(action, target));
+				jobMasterGateway.operateWatchpoints(watchpointCommand));
 	}
 
 

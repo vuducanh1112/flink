@@ -1196,8 +1196,8 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 	//----------------------------------------------------------------------------------------------
 
 	@Override
-	public CompletableFuture<Acknowledge> operateWatchpoints(String action, WatchpointCommand target) {
-		schedulerNG.operateWatchpoints(action, target);
+	public CompletableFuture<Acknowledge> operateWatchpoints(WatchpointCommand watchpointCommand) {
+		schedulerNG.operateWatchpoints(watchpointCommand);
 		return CompletableFuture.completedFuture(Acknowledge.get());
 	}
 
