@@ -63,7 +63,7 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 			String whatToWatch = request.getRequestBody().getTarget();
 
 			final JobID jobId = request.getPathParameter(JobIDPathParameter.class);
-			
+
 			String taskIdString = request.getRequestBody().getTaskId();
 			JobVertexID taskId = taskIdString == null ? null : JobVertexID.fromHexString(taskIdString);
 

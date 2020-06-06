@@ -40,16 +40,17 @@ public class WatchpointRequest implements RequestBody {
 	private static final String FIELD_NAME_WATCHPOINT_GUARDCLASSNAME = "guardClassName";
 
 	@JsonProperty(FIELD_NAME_WATCHPOINT_ACTION)
-	@Nullable
 	private final String action;
 
 	@JsonProperty(FIELD_NAME_WATCHPOINT_TARGET)
 	private final String target;
 
 	@JsonProperty(FIELD_NAME_TASK_ID)
+	@Nullable
 	private final String taskId;
 
 	@JsonProperty(FIELD_NAME_SUBTASK_INDEX)
+	@Nullable
 	private final String subtaskIndex;
 
 	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME)
@@ -59,8 +60,8 @@ public class WatchpointRequest implements RequestBody {
 	public WatchpointRequest(
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_ACTION) final String action,
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target,
-		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String taskId,
-		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String subtaskIndex,
+		@Nullable @JsonProperty(FIELD_NAME_TASK_ID) final String taskId,
+		@Nullable @JsonProperty(FIELD_NAME_SUBTASK_INDEX) final String subtaskIndex,
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME) final String guardClassName) {
 		this.action = action;
 		this.target = target;
