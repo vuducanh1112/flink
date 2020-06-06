@@ -31,17 +31,9 @@ public class WatchpointMessageParameters extends MessageParameters {
 
 	public final JobIDPathParameter jobId = new JobIDPathParameter();
 
-	public final JobVertexIdPathParameter jobVertexIdPathParameter = new JobVertexIdPathParameter();
-
-	public final SubtaskIndexPathParameter subtaskIndexPathParameter = new SubtaskIndexPathParameter();
-
-	public final WatchpointActionParameter watchpointActionParameter = new WatchpointActionParameter();
-
-	public final WatchpointTargetParameter watchpointTargetParameter = new WatchpointTargetParameter();
-
 	@Override
 	public Collection<MessagePathParameter<?>> getPathParameters() {
-		return Arrays.asList(watchpointActionParameter, watchpointTargetParameter, jobId, jobVertexIdPathParameter, subtaskIndexPathParameter);
+		return Arrays.asList(jobId);
 	}
 
 	@Override

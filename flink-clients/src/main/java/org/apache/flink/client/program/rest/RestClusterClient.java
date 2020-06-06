@@ -699,18 +699,13 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 
 		watchpointMessageParameters.jobId.resolve(watchpointCommand.getJobId());
 
-		if(watchpointCommand.hasTaskId()){
-			watchpointMessageParameters.jobVertexIdPathParameter.resolve(watchpointCommand.getTaskId());
-		}
-
-		if(watchpointCommand.hasSubTaskIndex()){
-			watchpointMessageParameters.subtaskIndexPathParameter.resolve(watchpointCommand.getSubtaskIndex());
-		}
+		String taskIdString = watchpointCommand.getTaskId() == null ? null : watchpointCommand.getTaskId().toHexString();
+		String subtaskIndexString = watchpointCommand.getSubtaskIndex() == null ? null : watchpointCommand.getSubtaskIndex().toString();
 
 		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
 			watchpointHeaders,
 			watchpointMessageParameters,
-			new WatchpointRequest(watchpointCommand.getAction(), watchpointCommand.getWhatToWatch(), watchpointCommand.getGuardClassName()));
+			new WatchpointRequest(watchpointCommand.getAction(), watchpointCommand.getWhatToWatch(), taskIdString, subtaskIndexString, watchpointCommand.getGuardClassName()));
 
 		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}

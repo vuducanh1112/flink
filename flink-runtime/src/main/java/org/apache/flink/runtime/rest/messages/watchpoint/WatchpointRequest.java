@@ -33,6 +33,10 @@ public class WatchpointRequest implements RequestBody {
 
 	private static final String FIELD_NAME_WATCHPOINT_TARGET = "target";
 
+	private static final String FIELD_NAME_TASK_ID = "target";
+
+	private static final String FIELD_NAME_SUBTASK_INDEX = "target";
+
 	private static final String FIELD_NAME_WATCHPOINT_GUARDCLASSNAME = "guardClassName";
 
 	@JsonProperty(FIELD_NAME_WATCHPOINT_ACTION)
@@ -42,6 +46,12 @@ public class WatchpointRequest implements RequestBody {
 	@JsonProperty(FIELD_NAME_WATCHPOINT_TARGET)
 	private final String target;
 
+	@JsonProperty(FIELD_NAME_TASK_ID)
+	private final String taskId;
+
+	@JsonProperty(FIELD_NAME_SUBTASK_INDEX)
+	private final String subtaskIndex;
+
 	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME)
 	private final String guardClassName;
 
@@ -49,9 +59,13 @@ public class WatchpointRequest implements RequestBody {
 	public WatchpointRequest(
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_ACTION) final String action,
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target,
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String taskId,
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String subtaskIndex,
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME) final String guardClassName) {
 		this.action = action;
 		this.target = target;
+		this.taskId = taskId;
+		this.subtaskIndex = subtaskIndex;
 		this.guardClassName = guardClassName;
 	}
 
@@ -63,6 +77,10 @@ public class WatchpointRequest implements RequestBody {
 	public String getTarget() {
 		return target;
 	}
+
+	public String getTaskId() { return taskId; }
+
+	public String getSubtaskIndex() { return subtaskIndex; }
 
 	public String getGuardClassName() { return guardClassName; }
 
