@@ -33,9 +33,9 @@ public class WatchpointRequest implements RequestBody {
 
 	private static final String FIELD_NAME_WATCHPOINT_TARGET = "target";
 
-	private static final String FIELD_NAME_TASK_ID = "target";
+	private static final String FIELD_NAME_TASK_ID = "taskId";
 
-	private static final String FIELD_NAME_SUBTASK_INDEX = "target";
+	private static final String FIELD_NAME_SUBTASK_INDEX = "subtaskIndex";
 
 	private static final String FIELD_NAME_WATCHPOINT_GUARDCLASSNAME = "guardClassName";
 
