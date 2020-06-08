@@ -30,6 +30,7 @@ import org.apache.flink.runtime.io.network.partition.ResultPartitionID;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.messages.TaskBackPressureResponse;
 import org.apache.flink.runtime.rpc.RpcTimeout;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -149,12 +150,6 @@ public interface TaskManagerGateway {
 		@RpcTimeout final Time timeout);
 
 
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName);
-
-	public void stopWatchingInput(ExecutionAttemptID executionAttemptID);
-
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName);
-
-	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
+	public void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand);
 
 }

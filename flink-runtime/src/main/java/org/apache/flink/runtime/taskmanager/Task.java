@@ -73,6 +73,7 @@ import org.apache.flink.runtime.taskexecutor.KvStateService;
 import org.apache.flink.runtime.taskexecutor.PartitionProducerStateChecker;
 import org.apache.flink.runtime.taskexecutor.slot.TaskSlotPayload;
 import org.apache.flink.runtime.util.FatalExitExceptionHandler;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.types.Either;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
@@ -1520,20 +1521,8 @@ public class Task implements Runnable, TaskSlotPayload, TaskActions, PartitionPr
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(String guardClassName){
-		invokable.startWatchingInput(guardClassName);
-	}
-
-	public void stopWatchingInput(){
-		invokable.stopWatchingInput();
-	}
-
-	public void startWatchingOutput(String guardClassName){
-		invokable.startWatchingOutput(guardClassName);
-	}
-
-	public void stopWatchingOutput(){
-		invokable.stopWatchingOutput();
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
+		invokable.operateWatchpoint(watchpointCommand);
 	}
 
 }

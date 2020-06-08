@@ -25,6 +25,7 @@ import org.apache.flink.runtime.checkpoint.CheckpointMetaData;
 import org.apache.flink.runtime.checkpoint.CheckpointMetrics;
 import org.apache.flink.runtime.checkpoint.CheckpointOptions;
 import org.apache.flink.runtime.execution.Environment;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 
 import java.util.concurrent.Future;
 
@@ -264,19 +265,7 @@ public abstract class AbstractInvokable {
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(String guardClassName){
-		//do nothing
-	}
-
-	public void stopWatchingInput(){
-		//do nothing
-	}
-
-	public void startWatchingOutput(String guardClassName){
-		//do nothing
-	}
-
-	public void stopWatchingOutput(){
+	public void operateWatchpoint(WatchpointCommand watchpointCommand){
 		//do nothing
 	}
 

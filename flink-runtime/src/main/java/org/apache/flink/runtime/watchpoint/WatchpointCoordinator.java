@@ -1,5 +1,6 @@
 package org.apache.flink.runtime.watchpoint;
 
+import com.esotericsoftware.minlog.Log;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionVertex;
@@ -7,6 +8,8 @@ import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -45,86 +48,39 @@ public class WatchpointCoordinator {
 	//----------------------------------------------------------------------------------------------
 
 	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
-		switch(watchpointCommand.getAction()){
-			case "startWatching":
-				switch(watchpointCommand.getWhatToWatch()){
-					case "input":
-						startWatchingInput(watchpointCommand.getGuardClassName());
-						break;
-					case "output":
-						startWatchingOutput(watchpointCommand.getGuardClassName());
-						break;
+
+		Collection<ExecutionVertex> subtasks = new ArrayList<>();
+
+		if(watchpointCommand.hasTaskId()) {
+
+			ExecutionJobVertex task = tasks.get(watchpointCommand.getTaskId());
+			if(watchpointCommand.hasSubTaskIndex()){
+
+				try{
+					ExecutionVertex subtask = task.getTaskVertices()[watchpointCommand.getSubtaskIndex()];
+					subtasks.add(subtask);
+				}catch(IndexOutOfBoundsException e){
+					LOG.error("task " + watchpointCommand.getTaskId() + " has no subtask " + watchpointCommand.getSubtaskIndex());
 				}
-				break;
-			case "stopWatching":
-				switch(watchpointCommand.getWhatToWatch()){
-					case "input":
-						stopWatchingInput();
-						break;
-					case "output":
-						stopWatchingOutput();
-						break;
+
+			}else{
+				for(ExecutionVertex subtask : task.getTaskVertices()){
+					subtasks.add(subtask);
 				}
-				break;
-			default:
-				throw new UnsupportedOperationException("action " + watchpointCommand.getAction() + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
-		}
-	}
+			}
+		} else {
 
-	public void startWatchingInput(String guardClassName) {
-
-		LOG.info("Start watching input of tasks");
-
-		for(ExecutionJobVertex executionJobVertex : tasks.values()){
-			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingInput(guardClassName);
+			//no task specified -> watch all tasks
+			for(ExecutionJobVertex task : tasks.values()){
+				for(ExecutionVertex subtask : task.getTaskVertices()){
+					subtasks.add(subtask);
+				}
 			}
 		}
-	}
 
-	public void stopWatchingInput() {
-
-		LOG.info("Stop watching input of tasks");
-
-		for(ExecutionJobVertex executionJobVertex : tasks.values()){
-			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().stopWatchingInput();
-			}
+		for(ExecutionVertex subtask : subtasks){
+			subtask.getCurrentExecutionAttempt().operateWatchpoint(watchpointCommand);
 		}
-	}
-
-	public void startWatchingOutput(String guardClassName) {
-
-		LOG.info("Start watching output of tasks");
-
-		for(ExecutionJobVertex executionJobVertex : tasks.values()){
-			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().startWatchingOutput(guardClassName);
-			}
-		}
-	}
-
-	public void stopWatchingOutput() {
-
-		LOG.info("Stop watching output of tasks");
-
-		for(ExecutionJobVertex executionJobVertex : tasks.values()){
-			for(ExecutionVertex executionVertex : executionJobVertex.getTaskVertices()){
-				executionVertex.getCurrentExecutionAttempt().stopWatchingOutput();
-			}
-		}
-	}
-
-
-	public void operateWatchpoint(JobVertexID taskId, WatchpointCommand watchpointCommand) {
-
-		ExecutionJobVertex task = tasks.get(taskId);
-		if (task == null) {
-			throw new IllegalStateException(
-				String.format("No task with id %s.", taskId));
-		}
-
-
 
 	}
 

@@ -60,6 +60,7 @@ import org.apache.flink.runtime.shuffle.ProducerDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.FlinkRuntimeException;
@@ -1664,49 +1665,13 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
-	public void startWatchingInput(String guardClassName) {
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
 		final LogicalSlot slot = assignedResource;
 
 		if (slot != null) {
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
-			taskManagerGateway.startWatchingInput(attemptId, guardClassName);
-		} else {
-			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
-		}
-	}
-
-	public void stopWatchingInput() {
-		final LogicalSlot slot = assignedResource;
-
-		if (slot != null) {
-			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
-
-			taskManagerGateway.stopWatchingInput(attemptId);
-		} else {
-			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
-		}
-	}
-
-	public void startWatchingOutput(String guardClassName) {
-		final LogicalSlot slot = assignedResource;
-
-		if (slot != null) {
-			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
-
-			taskManagerGateway.startWatchingOutput(attemptId, guardClassName);
-		} else {
-			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
-		}
-	}
-
-	public void stopWatchingOutput() {
-		final LogicalSlot slot = assignedResource;
-
-		if (slot != null) {
-			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
-
-			taskManagerGateway.stopWatchingOutput(attemptId);
+			taskManagerGateway.operateWatchpoint(attemptId, watchpointCommand);
 		} else {
 			LOG.debug("The execution has no slot assigned. This indicates that the execution is no longer running.");
 		}

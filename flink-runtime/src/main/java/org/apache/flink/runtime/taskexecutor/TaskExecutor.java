@@ -114,6 +114,7 @@ import org.apache.flink.runtime.taskmanager.Task;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerActions;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.types.SerializableOptional;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.FlinkException;
@@ -955,63 +956,15 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	// ----------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName){
+	public void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand) {
 
 		final Task task = taskSlotTable.getTask(executionAttemptID);
 
 		if (task != null) {
-			task.startWatchingInput(guardClassName);
+			task.operateWatchpoint(watchpointCommand);
 
 		} else {
-			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
-
-			log.debug(message);
-		}
-
-	}
-
-	@Override
-	public void stopWatchingInput(ExecutionAttemptID executionAttemptID){
-
-		final Task task = taskSlotTable.getTask(executionAttemptID);
-
-		if (task != null) {
-			task.stopWatchingInput();
-
-		} else {
-			final String message = "TaskManager received a stop watch request for unknown task " + executionAttemptID + '.';
-
-			log.debug(message);
-		}
-
-	}
-
-	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName){
-
-		final Task task = taskSlotTable.getTask(executionAttemptID);
-
-		if (task != null) {
-			task.startWatchingOutput(guardClassName);
-
-		} else {
-			final String message = "TaskManager received a watch request for unknown task " + executionAttemptID + '.';
-
-			log.debug(message);
-		}
-
-	}
-
-	@Override
-	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID){
-
-		final Task task = taskSlotTable.getTask(executionAttemptID);
-
-		if (task != null) {
-			task.stopWatchingOutput();
-
-		} else {
-			final String message = "TaskManager received a stop watch request for unknown task " + executionAttemptID + '.';
+			final String message = "TaskManager received a operate watchpoint request for unknown task " + executionAttemptID + '.';
 
 			log.debug(message);
 		}

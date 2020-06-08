@@ -27,6 +27,7 @@ import org.apache.flink.runtime.execution.Environment;
 import org.apache.flink.runtime.io.network.partition.consumer.InputGate;
 import org.apache.flink.runtime.metrics.MetricNames;
 import org.apache.flink.runtime.metrics.groups.TaskIOMetricGroup;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
@@ -200,27 +201,20 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 	// ------------------------------------------------------------------------
 
 	@Override
-	public void startWatchingInput(String guardClassName) {
-		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
-		operator.getWatchpoint().startWatchingInput(guardClassName);
-	}
-
-	@Override
-	public void stopWatchingInput() {
-		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
-		operator.getWatchpoint().stopWatchingInput();
-	}
-
-	@Override
-	public void startWatchingOutput(String guardClassName) {
-		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
-		operator.getWatchpoint().startWatchingOutput(guardClassName);
-	}
-
-	@Override
-	public void stopWatchingOutput() {
-		AbstractStreamOperator operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
-		operator.getWatchpoint().stopWatchingOutput();
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
+		AbstractStreamOperator operator;
+		switch(watchpointCommand.getWhatToWatch()){
+			case "input":
+				operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
+				operator.getWatchpoint().operateWatchpoint(watchpointCommand);
+				break;
+			case "output":
+				operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
+				operator.getWatchpoint().operateWatchpoint(watchpointCommand);
+				break;
+			default:
+				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
+		}
 	}
 
 }

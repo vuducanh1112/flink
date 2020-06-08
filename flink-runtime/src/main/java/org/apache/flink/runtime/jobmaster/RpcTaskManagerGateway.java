@@ -31,6 +31,7 @@ import org.apache.flink.runtime.jobmanager.slots.TaskManagerGateway;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.messages.TaskBackPressureResponse;
 import org.apache.flink.runtime.taskexecutor.TaskExecutorGateway;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.util.Preconditions;
 
 import java.util.Collections;
@@ -108,24 +109,11 @@ public class RpcTaskManagerGateway implements TaskManagerGateway {
 			timeout);
 	}
 
-	@Override
-	public void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName) {
-		taskExecutorGateway.startWatchingInput(executionAttemptID, guardClassName);
-	}
+
 
 	@Override
-	public void stopWatchingInput(ExecutionAttemptID executionAttemptID) {
-		taskExecutorGateway.stopWatchingInput(executionAttemptID);
-	}
-
-	@Override
-	public void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName) {
-		taskExecutorGateway.startWatchingOutput(executionAttemptID, guardClassName);
-	}
-
-	@Override
-	public void stopWatchingOutput(ExecutionAttemptID executionAttemptID) {
-		taskExecutorGateway.stopWatchingOutput(executionAttemptID);
+	public void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand) {
+		taskExecutorGateway.operateWatchpoint(executionAttemptID, watchpointCommand);
 	}
 
 }

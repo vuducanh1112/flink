@@ -40,6 +40,7 @@ import org.apache.flink.runtime.resourcemanager.ResourceManagerId;
 import org.apache.flink.runtime.rpc.RpcGateway;
 import org.apache.flink.runtime.rpc.RpcTimeout;
 import org.apache.flink.runtime.taskmanager.Task;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.types.SerializableOptional;
 
 import java.util.Set;
@@ -214,12 +215,8 @@ public interface TaskExecutorGateway extends RpcGateway {
 	 */
 	CompletableFuture<Boolean> canBeReleased();
 
-	void startWatchingInput(ExecutionAttemptID executionAttemptID, String guardClassName);
 
-	void stopWatchingInput(ExecutionAttemptID executionAttemptID);
 
-	void startWatchingOutput(ExecutionAttemptID executionAttemptID, String guardClassName);
-
-	void stopWatchingOutput(ExecutionAttemptID executionAttemptID);
+	void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand);
 
 }

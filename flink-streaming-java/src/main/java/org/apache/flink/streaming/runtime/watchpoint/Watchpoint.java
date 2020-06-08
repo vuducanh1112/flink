@@ -4,14 +4,17 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.util.FlinkException;
+import org.apache.flink.util.SerializableObject;
 
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.net.Socket;
 import java.sql.Timestamp;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -56,6 +59,62 @@ public class Watchpoint {
 	}
 
 	// ------------------------------------------------------------------------
+	//  Operate
+	// ------------------------------------------------------------------------
+
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
+
+		switch(watchpointCommand.getAction()){
+			case "startWatching":
+				startWatching(watchpointCommand.getWhatToWatch(), watchpointCommand.getGuardClassName());
+				break;
+			case "stopWatching":
+				stopWatching(watchpointCommand.getWhatToWatch());
+				break;
+			default:
+				throw new UnsupportedOperationException("action " + watchpointCommand.getAction() + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
+		}
+
+	}
+
+	private void startWatching(String target, String guardClassName) {
+
+		FilterFunction guard;
+		try{
+			guard = loadFilterFunction(guardClassName);
+		}catch(Exception e){
+			e.printStackTrace();
+			guard = (x) -> true;
+		}
+
+		switch(target){
+			case "input":
+				setGuardIN(guard);
+				this.isWatchingInput = true;
+				break;
+			case "output":
+				setGuardOUT(guard);
+				this.isWatchingOutput = true;
+				break;
+			default:
+				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
+		}
+	}
+
+	private void stopWatching(String target) {
+		switch(target){
+			case "input":
+				this.isWatchingInput = false;
+				break;
+			case "output":
+				this.isWatchingOutput = false;
+				break;
+			default:
+				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
+		}
+	}
+
+	// ------------------------------------------------------------------------
 	//  Watch methods
 	// ------------------------------------------------------------------------
 
@@ -86,38 +145,6 @@ public class Watchpoint {
 	// ------------------------------------------------------------------------
 	//  Utility
 	// ------------------------------------------------------------------------
-
-	public void startWatchingInput(String guardClassName) {
-		FilterFunction guard;
-		try{
-			guard = loadFilterFunction(guardClassName);
-		}catch(Exception e){
-			e.printStackTrace();
-			guard = (x) -> true;
-		}
-		setGuardIN(guard);
-		this.isWatchingInput = true;
-	}
-
-	public void stopWatchingInput() {
-		this.isWatchingInput = false;
-	}
-
-	public void startWatchingOutput(String guardClassName) {
-		FilterFunction guard;
-		try{
-			guard = loadFilterFunction(guardClassName);
-		}catch(Exception e){
-			e.printStackTrace();
-			guard = (x) -> true;
-		}
-		setGuardOUT(guard);
-		this.isWatchingOutput = true;
-	}
-
-	public void stopWatchingOutput() {
-		this.isWatchingOutput = false;
-	}
 
 	public void setIdentifier() {
 		this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
