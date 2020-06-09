@@ -17,6 +17,8 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 
 public class WatchpointCoordinator {
 
+	private static final long serialVersionUID = 1L;
+
 	private static final Logger LOG = LoggerFactory.getLogger(WatchpointCoordinator.class);
 
 	/** The job whose checkpoint this coordinator coordinates. */
@@ -48,19 +50,25 @@ public class WatchpointCoordinator {
 	//----------------------------------------------------------------------------------------------
 
 	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
-
+		
 		Collection<ExecutionVertex> subtasks = new ArrayList<>();
 
 		if(watchpointCommand.hasTaskId()) {
 
 			ExecutionJobVertex task = tasks.get(watchpointCommand.getTaskId());
+
+			if(task == null) {
+				LOG.warn("No task " + watchpointCommand.getTaskId() + " exists. Abort operating watchpoint.");
+				return;
+			}
+
 			if(watchpointCommand.hasSubTaskIndex()){
 
 				try{
 					ExecutionVertex subtask = task.getTaskVertices()[watchpointCommand.getSubtaskIndex()];
 					subtasks.add(subtask);
 				}catch(IndexOutOfBoundsException e){
-					LOG.error("task " + watchpointCommand.getTaskId() + " has no subtask " + watchpointCommand.getSubtaskIndex());
+					LOG.warn("task " + watchpointCommand.getTaskId() + " has no subtask " + watchpointCommand.getSubtaskIndex());
 				}
 
 			}else{
@@ -70,7 +78,7 @@ public class WatchpointCoordinator {
 			}
 		} else {
 
-			//no task specified -> watch all tasks
+			//no task specified -> operate on all tasks and their subtasks
 			for(ExecutionJobVertex task : tasks.values()){
 				for(ExecutionVertex subtask : task.getTaskVertices()){
 					subtasks.add(subtask);

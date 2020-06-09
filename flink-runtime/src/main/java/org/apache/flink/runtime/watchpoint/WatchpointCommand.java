@@ -7,7 +7,7 @@ import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-public class WatchpointCommand {
+public class WatchpointCommand implements java.io.Serializable {
 
 	private String action;
 
