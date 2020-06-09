@@ -190,6 +190,7 @@ public class Watchpoint {
 
 	public void setIdentifier() {
 		this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
+
 	}
 
 	private FilterFunction loadFilterFunction(String className) throws Exception{

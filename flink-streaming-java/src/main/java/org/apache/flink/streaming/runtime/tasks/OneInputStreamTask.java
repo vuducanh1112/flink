@@ -193,25 +193,4 @@ public class OneInputStreamTask<IN, OUT> extends StreamTask<OUT, OneInputStreamO
 		}
 	}
 
-	// ------------------------------------------------------------------------
-	//  Watchpoint
-	// ------------------------------------------------------------------------
-
-	@Override
-	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
-		AbstractStreamOperator operator;
-		switch(watchpointCommand.getWhatToWatch()){
-			case "input":
-				operator = (AbstractStreamOperator) operatorChain.getAllOperators()[operatorChain.getChainLength()-1];
-				operator.getWatchpoint().operateWatchpoint(watchpointCommand);
-				break;
-			case "output":
-				operator = (AbstractStreamOperator) operatorChain.getHeadOperator();
-				operator.getWatchpoint().operateWatchpoint(watchpointCommand);
-				break;
-			default:
-				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
-		}
-	}
-
 }

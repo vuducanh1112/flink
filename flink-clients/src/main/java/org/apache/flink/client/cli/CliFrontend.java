@@ -58,6 +58,7 @@ import org.apache.flink.util.FlinkException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.apache.flink.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -698,7 +699,9 @@ public class CliFrontend {
 
 		String subtaskIndexString = watchpointOptions.getSubtaskIndex();
 		Integer subtaskIndex = subtaskIndexString == null ? null : Integer.parseInt(subtaskIndexString);
-		OperatorID operatorId = null;
+
+		String operatorIdString = watchpointOptions.getOperatorId();
+		OperatorID operatorId = operatorIdString == null ? null : new OperatorID(StringUtils.hexStringToByte(operatorIdString));
 
 		String guard1 = watchpointOptions.getGuard1();
 

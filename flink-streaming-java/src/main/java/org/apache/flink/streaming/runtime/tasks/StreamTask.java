@@ -53,15 +53,11 @@ import org.apache.flink.runtime.state.TaskStateManager;
 import org.apache.flink.runtime.taskmanager.DispatcherThreadFactory;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
 import org.apache.flink.runtime.util.FatalExitExceptionHandler;
+import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.graph.StreamEdge;
-import org.apache.flink.streaming.api.operators.MailboxExecutor;
-import org.apache.flink.streaming.api.operators.OperatorSnapshotFinalizer;
-import org.apache.flink.streaming.api.operators.OperatorSnapshotFutures;
-import org.apache.flink.streaming.api.operators.StreamOperator;
-import org.apache.flink.streaming.api.operators.StreamTaskStateInitializer;
-import org.apache.flink.streaming.api.operators.StreamTaskStateInitializerImpl;
+import org.apache.flink.streaming.api.operators.*;
 import org.apache.flink.streaming.runtime.io.InputStatus;
 import org.apache.flink.streaming.runtime.io.RecordWriterOutput;
 import org.apache.flink.streaming.runtime.io.StreamInputProcessor;
@@ -218,9 +214,6 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 
 	private Long syncSavepointId = null;
 
-	/** Watchpoints. */
-	protected Map<OperatorID, Watchpoint> watchpoints;
-
 	// ------------------------------------------------------------------------
 
 	/**
@@ -287,7 +280,6 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		this.mailboxProcessor = new MailboxProcessor(this::processInput, mailbox, actionExecutor);
 		this.asyncExceptionHandler = new StreamTaskAsyncExceptionHandler(environment);
 
-		this.watchpoints = new HashMap<>();
 	}
 
 	// ------------------------------------------------------------------------
@@ -1509,4 +1501,31 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			handleAsyncException("Caught exception while processing timer.", new TimerException(t));
 		}
 	}
+
+	// ------------------------------------------------------------------------
+	//  Watchpoint
+	// ------------------------------------------------------------------------
+
+
+	@Override
+	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
+
+		if(watchpointCommand.hasOperatorId()) {
+
+			for(StreamOperator operator : operatorChain.getAllOperators()) {
+				if(operator.getOperatorID().equals(watchpointCommand.getOperatorId())) {
+					((AbstractStreamOperator)operator).getWatchpoint().operateWatchpoint(watchpointCommand);
+					break;
+				}
+			}
+
+		} else {
+
+			for(StreamOperator operator : operatorChain.getAllOperators()) {
+				((AbstractStreamOperator)operator).getWatchpoint().operateWatchpoint(watchpointCommand);
+			}
+
+		}
+	}
+
 }

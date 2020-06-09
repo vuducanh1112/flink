@@ -32,6 +32,7 @@ import org.apache.flink.runtime.rest.messages.watchpoint.*;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.retriever.GatewayRetriever;
+import org.apache.flink.util.StringUtils;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -70,7 +71,9 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 			String subtaskIndexString = request.getRequestBody().getSubtaskIndex();
 			Integer subtaskIndex = subtaskIndexString == null ? null : Integer.parseInt(subtaskIndexString);
 
-			OperatorID operatorId = null;
+			String operatorIdString = request.getRequestBody().getOperatorId();
+			OperatorID operatorId = operatorIdString == null ? null : new OperatorID(StringUtils.hexStringToByte(operatorIdString));
+
 			String guard1ClassName = request.getRequestBody().getGuard1ClassName();
 			String guard2ClassName = request.getRequestBody().getGuard2ClassName();
 
