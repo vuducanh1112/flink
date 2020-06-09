@@ -71,9 +71,19 @@ public class WatchpointHandlers extends AbstractAsynchronousOperationHandlers<Op
 			Integer subtaskIndex = subtaskIndexString == null ? null : Integer.parseInt(subtaskIndexString);
 
 			OperatorID operatorId = null;
-			String guardClassName = request.getRequestBody().getGuardClassName();
+			String guard1ClassName = request.getRequestBody().getGuard1ClassName();
+			String guard2ClassName = request.getRequestBody().getGuard2ClassName();
 
-			return gateway.operateWatchpoints(new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guardClassName));
+			return gateway.operateWatchpoints(
+				new WatchpointCommand(
+					action,
+					whatToWatch,
+					jobId,
+					taskId,
+					subtaskIndex,
+					operatorId,
+					guard1ClassName,
+					guard2ClassName));
 		}
 
 		@Override

@@ -3,27 +3,29 @@ package org.apache.flink.streaming.runtime.watchpoint;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
-import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.util.FlinkException;
-import org.apache.flink.util.SerializableObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
-import java.net.Socket;
 import java.sql.Timestamp;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 public class Watchpoint {
 
+	protected static final Logger LOG = LoggerFactory.getLogger(Watchpoint.class);
+
 	private AbstractStreamOperator operator;
 
-	private FilterFunction guardIN;
+	private FilterFunction guardIN1;
+
+	private FilterFunction guardIN2;
 
 	private FilterFunction guardOUT;
 
@@ -33,7 +35,9 @@ public class Watchpoint {
 
 	private SerializationSchema serializationSchema;
 
-	private boolean isWatchingInput;
+	private boolean isWatchingInput1;
+
+	private boolean isWatchingInput2;
 
 	private boolean isWatchingOutput;
 
@@ -47,13 +51,15 @@ public class Watchpoint {
 		this.operator = checkNotNull(operator);
 
 		//initialize no filter i.e. any record passes
-		this.guardIN = (x) -> true;
+		this.guardIN1 = (x) -> true;
+		this.guardIN2 = (x) -> true;
 		this.guardOUT = (x) -> true;
 
 		this.outputStream = System.out;
 		this.serializationSchema = new SimpleStringSchema();
 
-		this.isWatchingInput = false;
+		this.isWatchingInput1 = false;
+		this.isWatchingInput2 = false;
 		this.isWatchingOutput = false;
 
 	}
@@ -66,7 +72,7 @@ public class Watchpoint {
 
 		switch(watchpointCommand.getAction()){
 			case "startWatching":
-				startWatching(watchpointCommand.getWhatToWatch(), watchpointCommand.getGuardClassName());
+				startWatching(watchpointCommand.getWhatToWatch(), watchpointCommand.getGuard1ClassName(), watchpointCommand.getGuard2ClassName());
 				break;
 			case "stopWatching":
 				stopWatching(watchpointCommand.getWhatToWatch());
@@ -74,43 +80,67 @@ public class Watchpoint {
 			default:
 				throw new UnsupportedOperationException("action " + watchpointCommand.getAction() + " is not supported for watchpoints. Use 'stopWatching' or 'startWatching'");
 		}
-
 	}
 
-	private void startWatching(String target, String guardClassName) {
+	private void startWatching(String target, String guard1ClassName, String guard2ClassName) {
 
-		FilterFunction guard;
+		FilterFunction guard1;
 		try{
-			guard = loadFilterFunction(guardClassName);
+			guard1 = loadFilterFunction(guard1ClassName);
 		}catch(Exception e){
-			e.printStackTrace();
-			guard = (x) -> true;
+			LOG.warn("Could not load guard1. Using no guard instead");
+			guard1 = (x) -> true;
+		}
+
+		FilterFunction guard2;
+		try{
+			guard2 = loadFilterFunction(guard2ClassName);
+		}catch(Exception e){
+			LOG.warn("Could not load guard2. Using no guard instead");
+			guard2 = (x) -> true;
 		}
 
 		switch(target){
 			case "input":
-				setGuardIN(guard);
-				this.isWatchingInput = true;
+				setGuardIN1(guard1);
+				this.isWatchingInput1 = true;
+				setGuardIN2(guard2);
+				this.isWatchingInput2 = true;
+				break;
+			case "input1":
+				setGuardIN1(guard1);
+				this.isWatchingInput1 = true;
+				break;
+			case "input2":
+				setGuardIN2(guard2);
+				this.isWatchingInput2 = true;
 				break;
 			case "output":
-				setGuardOUT(guard);
+				setGuardOUT(guard1);
 				this.isWatchingOutput = true;
 				break;
 			default:
-				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
+				throw new UnsupportedOperationException("target for watchpoint action must be either input, input1, input2 or output");
 		}
 	}
 
 	private void stopWatching(String target) {
 		switch(target){
 			case "input":
-				this.isWatchingInput = false;
+				this.isWatchingInput1 = false;
+				this.isWatchingInput2 = false;
+				break;
+			case "input1":
+				this.isWatchingInput1 = false;
+				break;
+			case "input2":
+				this.isWatchingInput2 = false;
 				break;
 			case "output":
 				this.isWatchingOutput = false;
 				break;
 			default:
-				throw new UnsupportedOperationException("target for watchpoint action must be input or output");
+				throw new UnsupportedOperationException("target for watchpoint action must be either input, input1, input2 or output");
 		}
 	}
 
@@ -118,10 +148,22 @@ public class Watchpoint {
 	//  Watch methods
 	// ------------------------------------------------------------------------
 
-	public <IN> void watchInput(StreamRecord<IN> inStreamRecord){
-		if(isWatchingInput){
+	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord){
+		if(isWatchingInput1){
 			try{
-				if(guardIN.filter(inStreamRecord.getValue())){
+				if(guardIN1.filter(inStreamRecord.getValue())){
+					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + inStreamRecord.toString() + "\n"));
+				}
+			}catch(Exception e){
+				e.printStackTrace(System.err);
+			}
+		}
+	}
+
+	public <IN2> void watchInput2(StreamRecord<IN2> inStreamRecord){
+		if(isWatchingInput2){
+			try{
+				if(guardIN2.filter(inStreamRecord.getValue())){
 					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + inStreamRecord.toString() + "\n"));
 				}
 			}catch(Exception e){
@@ -189,12 +231,22 @@ public class Watchpoint {
 	//  Setter and Getter
 	// ------------------------------------------------------------------------
 
-	public void setGuardIN(FilterFunction guardIN) {
+	public void setGuardIN1(FilterFunction guardIN1) {
 
 		try{
-			this.guardIN = checkNotNull(guardIN);
+			this.guardIN1 = checkNotNull(guardIN1);
 		}catch (Exception e){
-			this.guardIN = (x) -> true;
+			this.guardIN1 = (x) -> true;
+		}
+
+	}
+
+	public void setGuardIN2(FilterFunction guardIN) {
+
+		try{
+			this.guardIN2 = checkNotNull(guardIN);
+		}catch (Exception e){
+			this.guardIN2 = (x) -> true;
 		}
 
 	}

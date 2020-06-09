@@ -3,7 +3,6 @@ package org.apache.flink.runtime.watchpoint;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
-import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -27,7 +26,9 @@ public class WatchpointCommand implements java.io.Serializable {
 
 	private boolean hasSubTaskIndex = false;
 
-	private String guardClassName;
+	private String guard1ClassName;
+
+	private String guard2ClassName;
 
 	//----------------------------------------------------------------------------------------------
 	// Constructors
@@ -37,16 +38,9 @@ public class WatchpointCommand implements java.io.Serializable {
 		this.action = checkNotNull(action);
 		this.whatToWatch = checkNotNull(whatToWatch);
 		this.jobId = checkNotNull(jobId);
-		this.guardClassName = "";
+		this.guard1ClassName = "";
+		this.guard2ClassName = "";
 	}
-
-	public WatchpointCommand(String action, String whatToWatch, JobID jobId, String guardClassName) {
-		this.action = checkNotNull(action);
-		this.whatToWatch = checkNotNull(whatToWatch);
-		this.jobId = checkNotNull(jobId);
-		this.guardClassName = checkNotNull(guardClassName);
-	}
-
 
 	public WatchpointCommand(
 		String action,
@@ -55,12 +49,17 @@ public class WatchpointCommand implements java.io.Serializable {
 		JobVertexID taskId,
 		Integer subtaskIndex,
 		OperatorID operatorId,
-		String guardClassName) {
+		String guard1ClassName,
+		String guard2ClassName) {
 
 		this(action, whatToWatch, jobId);
 
-		if(guardClassName == null) {
-			this.guardClassName = "";
+		if(guard1ClassName != null) {
+			this.guard1ClassName = guard1ClassName;
+		}
+
+		if(guard2ClassName != null) {
+			this.guard1ClassName = guard2ClassName;
 		}
 
 		if(taskId != null){
@@ -104,7 +103,9 @@ public class WatchpointCommand implements java.io.Serializable {
 
 	public Integer getSubtaskIndex() { return subtaskIndex; }
 
-	public String getGuardClassName() { return guardClassName; }
+	public String getGuard1ClassName() { return guard1ClassName; }
+
+	public String getGuard2ClassName() { return guard2ClassName; }
 
 	public boolean hasOperatorId() { return hasOperatorId; }
 

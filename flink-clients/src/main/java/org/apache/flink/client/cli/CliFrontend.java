@@ -22,7 +22,6 @@ import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.InvalidProgramException;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobStatus;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.dag.Pipeline;
 import org.apache.flink.client.ClientUtils;
 import org.apache.flink.client.FlinkPipelineTranslationUtil;
@@ -701,9 +700,20 @@ public class CliFrontend {
 		Integer subtaskIndex = subtaskIndexString == null ? null : Integer.parseInt(subtaskIndexString);
 		OperatorID operatorId = null;
 
-		String guard = watchpointOptions.getGuard();
+		String guard1 = watchpointOptions.getGuard1();
 
-		WatchpointCommand watchpointCommand = new WatchpointCommand(action, whatToWatch, jobId, taskId, subtaskIndex, operatorId, guard);
+		String guard2 = watchpointOptions.getGuard2();
+
+		WatchpointCommand watchpointCommand =
+			new WatchpointCommand(
+				action,
+				whatToWatch,
+				jobId,
+				taskId,
+				subtaskIndex,
+				operatorId,
+				guard1,
+				guard2);
 
 		runClusterAction(
 			activeCommandLine,

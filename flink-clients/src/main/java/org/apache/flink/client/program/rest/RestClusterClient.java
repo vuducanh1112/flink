@@ -705,7 +705,13 @@ public class RestClusterClient<T> implements ClusterClient<T> {
 		CompletableFuture<TriggerResponse> responseFuture = sendRequest(
 			watchpointHeaders,
 			watchpointMessageParameters,
-			new WatchpointRequest(watchpointCommand.getAction(), watchpointCommand.getWhatToWatch(), taskIdString, subtaskIndexString, watchpointCommand.getGuardClassName()));
+			new WatchpointRequest(
+				watchpointCommand.getAction(),
+				watchpointCommand.getWhatToWatch(),
+				taskIdString,
+				subtaskIndexString,
+				watchpointCommand.getGuard1ClassName(),
+				watchpointCommand.getGuard2ClassName()));
 
 		return responseFuture.thenApply(ignore -> Acknowledge.get());
 	}

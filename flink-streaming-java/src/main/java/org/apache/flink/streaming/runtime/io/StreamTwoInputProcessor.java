@@ -22,6 +22,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.metrics.Counter;
 import org.apache.flink.runtime.io.disk.iomanager.IOManager;
+import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput.DataOutput;
@@ -131,7 +132,7 @@ public final class StreamTwoInputProcessor<IN1, IN2> implements StreamInputProce
 			TwoInputStreamOperator<IN1, IN2, ?> streamOperator,
 			Counter numRecordsIn) throws Exception {
 
-		System.out.println("operator " + streamOperator.getOperatorID() + "is processing record: " + record);
+		((AbstractStreamOperator) streamOperator).getWatchpoint().watchInput1(record);
 		streamOperator.setKeyContextElement1(record);
 		streamOperator.processElement1(record);
 		postProcessRecord(numRecordsIn);
@@ -142,7 +143,7 @@ public final class StreamTwoInputProcessor<IN1, IN2> implements StreamInputProce
 			TwoInputStreamOperator<IN1, IN2, ?> streamOperator,
 			Counter numRecordsIn) throws Exception {
 
-		System.out.println("operator " + streamOperator.getOperatorID() + "is processing record: " + record);
+		((AbstractStreamOperator) streamOperator).getWatchpoint().watchInput2(record);
 		streamOperator.setKeyContextElement2(record);
 		streamOperator.processElement2(record);
 		postProcessRecord(numRecordsIn);

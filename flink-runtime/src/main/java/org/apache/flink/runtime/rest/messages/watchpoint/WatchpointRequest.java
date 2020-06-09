@@ -37,7 +37,9 @@ public class WatchpointRequest implements RequestBody {
 
 	private static final String FIELD_NAME_SUBTASK_INDEX = "subtaskIndex";
 
-	private static final String FIELD_NAME_WATCHPOINT_GUARDCLASSNAME = "guardClassName";
+	private static final String FIELD_NAME_WATCHPOINT_GUARD1CLASSNAME = "guard1ClassName";
+
+	private static final String FIELD_NAME_WATCHPOINT_GUARD2CLASSNAME = "guard2ClassName";
 
 	@JsonProperty(FIELD_NAME_WATCHPOINT_ACTION)
 	private final String action;
@@ -53,8 +55,11 @@ public class WatchpointRequest implements RequestBody {
 	@Nullable
 	private final String subtaskIndex;
 
-	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME)
-	private final String guardClassName;
+	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARD1CLASSNAME)
+	private final String guard1ClassName;
+
+	@JsonProperty(FIELD_NAME_WATCHPOINT_GUARD2CLASSNAME)
+	private final String guard2ClassName;
 
 	@JsonCreator
 	public WatchpointRequest(
@@ -62,12 +67,14 @@ public class WatchpointRequest implements RequestBody {
 		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_TARGET) final String target,
 		@Nullable @JsonProperty(FIELD_NAME_TASK_ID) final String taskId,
 		@Nullable @JsonProperty(FIELD_NAME_SUBTASK_INDEX) final String subtaskIndex,
-		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARDCLASSNAME) final String guardClassName) {
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARD1CLASSNAME) final String guard1ClassName,
+		@Nullable @JsonProperty(FIELD_NAME_WATCHPOINT_GUARD2CLASSNAME) final String guard2ClassName) {
 		this.action = action;
 		this.target = target;
 		this.taskId = taskId;
 		this.subtaskIndex = subtaskIndex;
-		this.guardClassName = guardClassName;
+		this.guard1ClassName = guard1ClassName;
+		this.guard2ClassName = guard2ClassName;
 	}
 
 
@@ -83,6 +90,8 @@ public class WatchpointRequest implements RequestBody {
 
 	public String getSubtaskIndex() { return subtaskIndex; }
 
-	public String getGuardClassName() { return guardClassName; }
+	public String getGuard1ClassName() { return guard1ClassName; }
+
+	public String getGuard2ClassName() { return guard2ClassName; }
 
 }

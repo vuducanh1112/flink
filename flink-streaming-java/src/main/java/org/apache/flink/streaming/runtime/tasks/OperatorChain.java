@@ -539,7 +539,7 @@ public class OperatorChain<OUT, OP extends StreamOperator<OUT>> implements Strea
 				StreamRecord<T> castRecord = (StreamRecord<T>) record;
 
 				numRecordsIn.inc();
-				((AbstractStreamOperator) operator).getWatchpoint().watchInput(castRecord);
+				((AbstractStreamOperator) operator).getWatchpoint().watchInput1(castRecord);
 				operator.setKeyContextElement1(castRecord);
 				operator.processElement(castRecord);
 			}

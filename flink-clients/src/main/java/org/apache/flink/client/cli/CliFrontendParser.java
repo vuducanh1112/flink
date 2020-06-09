@@ -176,9 +176,15 @@ public class CliFrontendParser {
 		"Specify whether watch/stop watching input or output " +
 			"e.g. : --target output");
 
-	static final Option WATCHPOINT_GUARD = new Option("guard", "guard", true,
-		"Specify the classname of the guard function that implements the FilterFunction interface " +
-			"e.g. : --guard com.example.MyFilter");
+	static final Option WATCHPOINT_GUARD1 = new Option("guard1", "guard1", true,
+		"Specify the classname of the guard function that implements the FilterFunction interface. " +
+			"guard1 and guard2 are only relevant for two-input operators such as CoMap, otherwise just specify guard1" +
+			"e.g. : --guard1 com.example.MyFilter");
+
+	static final Option WATCHPOINT_GUARD2 = new Option("guard2", "guard2", true,
+		"Specify the classname of the guard function that implements the FilterFunction interface. " +
+			"Only needed for two-input operators such as CoMap, otherwise just specify guard1" +
+			"e.g. : --guard2 com.example.MyFilter");
 
 	static final Option WATCHPOINT_JOB_ID = new Option("job", "job", true,
 		"Specify the job " +
@@ -262,11 +268,12 @@ public class CliFrontendParser {
 
 		WATCHPOINT_ACTION.setRequired(true);
 		WATCHPOINT_ACTION_TARGET.setRequired(true);
-		WATCHPOINT_GUARD.setRequired(false);
 		WATCHPOINT_JOB_ID.setRequired(true);
 		WATCHPOINT_TASK_ID.setRequired(false);
 		WATCHPOINT_OPERATOR_ID.setRequired(false);
 		WATCHPOINT_SUBTASK_INDEX.setRequired(false);
+		WATCHPOINT_GUARD1.setRequired(false);
+		WATCHPOINT_GUARD2.setRequired(false);
 	}
 
 	static final Options RUN_OPTIONS = getRunCommandOptions();
@@ -355,7 +362,8 @@ public class CliFrontendParser {
 		options.addOption(WATCHPOINT_JOB_ID);
 		options.addOption(WATCHPOINT_TASK_ID);
 		options.addOption(WATCHPOINT_SUBTASK_INDEX);
-		options.addOption(WATCHPOINT_GUARD);
+		options.addOption(WATCHPOINT_GUARD1);
+		options.addOption(WATCHPOINT_GUARD2);
 		return options.addOption(JAR_OPTION);
 	}
 
