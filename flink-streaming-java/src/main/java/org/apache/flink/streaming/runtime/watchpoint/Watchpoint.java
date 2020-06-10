@@ -1,8 +1,11 @@
 package org.apache.flink.streaming.runtime.watchpoint;
 
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.runtime.jobgraph.JobVertexID;
+import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.functions.sink.SocketClientSink;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
@@ -189,7 +192,23 @@ public class Watchpoint {
 	// ------------------------------------------------------------------------
 
 	public void setIdentifier() {
-		this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
+
+		JobID job = operator.getContainingTask().getEnvironment().getJobID();
+		JobVertexID task = operator.getContainingTask().getEnvironment().getJobVertexId();
+		String subtask = operator.getContainingTask().getName();
+		OperatorID operatorID = operator.getOperatorID();
+		String operaterName = operator.getOperatorConfig().getOperatorName();
+
+		StringBuilder builder = new StringBuilder();
+
+		builder.append("job").append(job.toHexString()).append(".");
+		builder.append("task").append(task.toHexString()).append(".");
+		builder.append(subtask).append(".");
+		builder.append(operaterName).append(".");
+		builder.append(operatorID.toHexString());
+
+		//this.identifier = operator.getMetricGroup().getMetricIdentifier("watchpoint");
+		this.identifier = builder.toString();
 
 	}
 

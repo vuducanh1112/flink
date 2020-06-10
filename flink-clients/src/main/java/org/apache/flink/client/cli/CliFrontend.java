@@ -734,10 +734,10 @@ public class CliFrontend {
 		try {
 			operateWatchpointFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
-			throw new FlinkException("Failed to do\n" + watchpointCommand , e);
+			throw new FlinkException("Failed to do watchpoint operation.\n", e);
 		}
 
-		logAndSysout("Started operating watchpoint with command:\n" + watchpointCommand);
+		logAndSysout("Started operating watchpoint with command.\n");
 
 	}
 

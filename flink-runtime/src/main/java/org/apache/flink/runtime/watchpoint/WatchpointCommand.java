@@ -86,8 +86,6 @@ public class WatchpointCommand implements java.io.Serializable {
 	@Override
 	public String toString() {
 
-		ClassLoader cl = getClass().getClassLoader();
-
 		StringBuilder builder = new StringBuilder();
 		builder.append("\n=======================");
 		builder.append("Watchpoint Command");
