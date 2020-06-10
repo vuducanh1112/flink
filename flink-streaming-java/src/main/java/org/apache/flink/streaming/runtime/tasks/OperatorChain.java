@@ -631,6 +631,7 @@ public class OperatorChain<OUT, OP extends StreamOperator<OUT>> implements Strea
 
 				numRecordsIn.inc();
 				StreamRecord<T> copy = castRecord.copy(serializer.copy(castRecord.getValue()));
+				((AbstractStreamOperator) operator).getWatchpoint().watchInput1(castRecord);
 				operator.setKeyContextElement1(copy);
 				operator.processElement(copy);
 			} catch (ClassCastException e) {
