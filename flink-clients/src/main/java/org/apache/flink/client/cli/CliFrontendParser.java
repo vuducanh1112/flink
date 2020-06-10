@@ -190,7 +190,7 @@ public class CliFrontendParser {
 		"Specify the job " +
 			"e.g. : --job 2390ffnvi94c9v");
 
-	static final Option WATCHPOINT_OPERATOR_ID = new Option("op", "operator", true,
+	static final Option WATCHPOINT_OPERATOR_ID = new Option("operator", "operator", true,
 		"Specify operator " +
 			"e.g. : --operator 567ik");
 
@@ -362,6 +362,7 @@ public class CliFrontendParser {
 		options.addOption(WATCHPOINT_JOB_ID);
 		options.addOption(WATCHPOINT_TASK_ID);
 		options.addOption(WATCHPOINT_SUBTASK_INDEX);
+		options.addOption(WATCHPOINT_OPERATOR_ID);
 		options.addOption(WATCHPOINT_GUARD1);
 		options.addOption(WATCHPOINT_GUARD2);
 		return options.addOption(JAR_OPTION);

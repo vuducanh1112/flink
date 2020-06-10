@@ -201,8 +201,8 @@ public class Watchpoint {
 
 		StringBuilder builder = new StringBuilder();
 
-		builder.append("job").append(job.toHexString()).append(".");
-		builder.append("task").append(task.toHexString()).append(".");
+		builder.append("job.").append(job.toHexString()).append(".");
+		builder.append("task.").append(task.toHexString()).append(".");
 		builder.append(subtask).append(".");
 		builder.append(operaterName).append(".");
 		builder.append(operatorID.toHexString());
