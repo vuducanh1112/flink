@@ -80,6 +80,50 @@ public class WatchpointCommand implements java.io.Serializable {
 	}
 
 	//----------------------------------------------------------------------------------------------
+	// To String
+	//----------------------------------------------------------------------------------------------
+
+	@Override
+	public String toString() {
+
+		ClassLoader cl = getClass().getClassLoader();
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("\n=======================");
+		builder.append("Watchpoint Command");
+		builder.append("=======================");
+		builder.append("\naction: ").append(getAction());
+		builder.append("\nwhat to watch: ").append(getWhatToWatch());
+		builder.append("\njob: ").append(getJobId());
+
+		builder.append("\ntask: ");
+		if (hasTaskId()) {
+			builder.append(getTaskId());
+		} else {
+			builder.append("no task specified");
+		}
+
+		builder.append("\nsubtask: ");
+		if (hasSubTaskIndex()) {
+			builder.append(getSubtaskIndex());
+		} else {
+			builder.append("no subtask specified");
+		}
+
+		builder.append("\noperator: ");
+		if (hasOperatorId()) {
+			builder.append(getOperatorId());
+		} else {
+			builder.append("no operator specified");
+		}
+
+		builder.append("\nguard1: ").append(getGuard1ClassName());
+		builder.append("\nguard2: ").append(getGuard2ClassName());
+
+		return builder.toString();
+	}
+
+	//----------------------------------------------------------------------------------------------
 	// Getters
 	//----------------------------------------------------------------------------------------------
 

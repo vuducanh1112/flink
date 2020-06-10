@@ -51,6 +51,8 @@ public class WatchpointCoordinator {
 
 	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
 
+		LOG.info("Operating watchpoint with command:\n" + watchpointCommand);
+
 		Collection<ExecutionVertex> subtasks = new ArrayList<>();
 
 		if(watchpointCommand.hasTaskId()) {

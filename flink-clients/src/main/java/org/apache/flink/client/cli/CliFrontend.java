@@ -725,7 +725,7 @@ public class CliFrontend {
 	}
 
 	private void operateWatchpoints(ClusterClient<?> clusterClient, WatchpointCommand watchpointCommand) throws FlinkException {
-		logAndSysout(watchpointCommand.getAction() + " " + watchpointCommand.getWhatToWatch() + " for job " + watchpointCommand.getJobId() + '.');
+		logAndSysout("Operate watchpoint with command:\n" + watchpointCommand);
 
 		final CompletableFuture<Acknowledge> operateWatchpointFuture = clusterClient.operateWatchpoint(watchpointCommand);
 
@@ -734,10 +734,10 @@ public class CliFrontend {
 		try {
 			operateWatchpointFuture.get(clientTimeout.toMillis(), TimeUnit.MILLISECONDS);
 		} catch (Exception e) {
-			throw new FlinkException("Failed to do " + watchpointCommand.getAction() , e);
+			throw new FlinkException("Failed to do\n" + watchpointCommand , e);
 		}
 
-		logAndSysout("Starting " + watchpointCommand.getAction());
+		logAndSysout("Started operating watchpoint with command:\n" + watchpointCommand);
 
 	}
 
