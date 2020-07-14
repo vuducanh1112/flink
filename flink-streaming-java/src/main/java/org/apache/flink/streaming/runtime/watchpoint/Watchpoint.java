@@ -155,7 +155,11 @@ public class Watchpoint {
 		if(isWatchingInput1){
 			try{
 				if(guardIN1.filter(inStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + inStreamRecord.toString() + "\n"));
+					outputStream.write(serializationSchema.serialize(
+						(new Timestamp(System.currentTimeMillis())).toString() + " " +
+							identifier + ".input1" +  ": " +
+							inStreamRecord.toString() +
+							"\n"));
 				}
 			}catch(Exception e){
 				e.printStackTrace(System.err);
@@ -167,7 +171,11 @@ public class Watchpoint {
 		if(isWatchingInput2){
 			try{
 				if(guardIN2.filter(inStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + inStreamRecord.toString() + "\n"));
+					outputStream.write(serializationSchema.serialize(
+						(new Timestamp(System.currentTimeMillis())).toString() + " " +
+							identifier + ".input2" +  ": " +
+							inStreamRecord.toString() +
+							"\n"));
 				}
 			}catch(Exception e){
 				e.printStackTrace(System.err);
@@ -179,7 +187,11 @@ public class Watchpoint {
 		if(isWatchingOutput){
 			try{
 				if(guardOUT.filter(outStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize((new Timestamp(System.currentTimeMillis())).toString() + " " + identifier + ": " + outStreamRecord.toString() + "\n"));
+					outputStream.write(serializationSchema.serialize(
+						(new Timestamp(System.currentTimeMillis())).toString() + " " +
+							identifier + ".output" + ": " +
+							outStreamRecord.toString() +
+							"\n"));
 				}
 			}catch(Exception e){
 				e.printStackTrace(System.err);
