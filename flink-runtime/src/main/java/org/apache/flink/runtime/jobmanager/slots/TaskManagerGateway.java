@@ -150,6 +150,8 @@ public interface TaskManagerGateway {
 		@RpcTimeout final Time timeout);
 
 
-	public void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand);
+	default void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand){
+		//do nothing
+	}
 
 }
