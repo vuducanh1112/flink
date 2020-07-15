@@ -151,7 +151,7 @@ public interface TaskManagerGateway {
 
 
 	default void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand){
-		//do nothing
+		throw new UnsupportedOperationException();
 	}
 
 }

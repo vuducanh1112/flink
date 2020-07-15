@@ -217,6 +217,8 @@ public interface TaskExecutorGateway extends RpcGateway {
 
 
 
-	void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand);
+	default void operateWatchpoint(ExecutionAttemptID executionAttemptID, WatchpointCommand watchpointCommand){
+		throw new UnsupportedOperationException();
+	}
 
 }
