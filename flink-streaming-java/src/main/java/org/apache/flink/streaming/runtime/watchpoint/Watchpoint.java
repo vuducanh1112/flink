@@ -55,7 +55,7 @@ public class Watchpoint {
 
 	private boolean isWatchingOutput;
 
-	private String identifier; //adopted from flink metric identifiers
+	private String identifier;
 
 	// ------------------------------------------------------------------------
 	//  Constructors
@@ -76,10 +76,11 @@ public class Watchpoint {
 
 		this.dir = "tmp/" +
 			this.operator.getContainingTask().getEnvironment().getJobID() + "/" +
-			this.operator.getContainingTask().getName() + "_" +
+			this.operator.getContainingTask().getEnvironment().getJobVertexId() + "/" +
 			this.operator.getOperatorID() + "_" +
-			this.operator.getOperatorConfig().getOperatorName()
-			+ "/";
+			this.operator.getOperatorConfig().getOperatorName() + "_" +
+			this.operator.getContainingTask().getEnvironment().getTaskInfo().getIndexOfThisSubtask() +
+			"/";
 
 		this.outputStream = System.out;
 		this.serializationSchema = new SimpleStringSchema();
@@ -167,7 +168,7 @@ public class Watchpoint {
 
 			fs.mkdirs(input2File.getParent());
 
-			input1Records = fs.create(input2File, FileSystem.WriteMode.NO_OVERWRITE);
+			input2Records = fs.create(input2File, FileSystem.WriteMode.NO_OVERWRITE);
 
 			setGuardIN2(guard2);
 			this.isWatchingInput2 = true;
@@ -193,7 +194,7 @@ public class Watchpoint {
 
 			fs.mkdirs(outputFile.getParent());
 
-			input1Records = fs.create(outputFile, FileSystem.WriteMode.NO_OVERWRITE);
+			outputRecords = fs.create(outputFile, FileSystem.WriteMode.NO_OVERWRITE);
 
 			setGuardOUT(guard);
 			this.isWatchingInput1 = true;
