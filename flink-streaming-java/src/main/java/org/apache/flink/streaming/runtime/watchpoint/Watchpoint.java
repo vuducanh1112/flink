@@ -4,6 +4,10 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.core.fs.FSDataOutputStream;
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.core.fs.local.LocalDataOutputStream;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
@@ -14,6 +18,7 @@ import org.apache.flink.util.FlinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.sql.Timestamp;
@@ -32,9 +37,15 @@ public class Watchpoint {
 
 	private FilterFunction guardOUT;
 
+	private String dir;
+
 	private OutputStream outputStream;
 
-	private SocketClientSink socketClientSink;
+	private FSDataOutputStream input1Records;
+
+	private FSDataOutputStream input2Records;
+
+	private FSDataOutputStream outputRecords;
 
 	private SerializationSchema serializationSchema;
 
@@ -52,18 +63,26 @@ public class Watchpoint {
 
 	public Watchpoint(AbstractStreamOperator operator){
 		this.operator = checkNotNull(operator);
+		this.setIdentifier();
 
 		//initialize no filter i.e. any record passes
 		this.guardIN1 = (x) -> true;
 		this.guardIN2 = (x) -> true;
 		this.guardOUT = (x) -> true;
 
-		this.outputStream = System.out;
-		this.serializationSchema = new SimpleStringSchema();
-
 		this.isWatchingInput1 = false;
 		this.isWatchingInput2 = false;
 		this.isWatchingOutput = false;
+
+		this.dir = "~/tmp/" +
+			this.operator.getContainingTask().getEnvironment().getJobID() + "/" +
+			this.operator.getContainingTask().getName() + "_" +
+			this.operator.getOperatorID() + "_" +
+			this.operator.getOperatorConfig().getOperatorName()
+			+ "/";
+
+		this.outputStream = System.out;
+		this.serializationSchema = new SimpleStringSchema();
 
 	}
 
@@ -87,44 +106,79 @@ public class Watchpoint {
 
 	private void startWatching(String target, String guard1ClassName, String guard2ClassName) {
 
+		switch(target){
+			case "input":
+				startWatchingInput1(guard1ClassName);
+				startWatchingInput2(guard2ClassName);
+				break;
+			case "input1":
+				startWatchingInput1(guard1ClassName);
+				break;
+			case "input2":
+				startWatchingInput2(guard2ClassName);
+				break;
+			case "output":
+				startWatchingOutput(guard1ClassName);
+				break;
+			default:
+				throw new UnsupportedOperationException("target for watchpoint action must be either input, input1, input2 or output");
+		}
+	}
+
+	private void startWatchingInput1(String guardClassName) {
+
 		FilterFunction guard1;
 		try{
-			guard1 = loadFilterFunction(guard1ClassName);
+			guard1 = loadFilterFunction(guardClassName);
 		}catch(Exception e){
 			LOG.warn("Could not load guard1. Using no guard instead");
 			guard1 = (x) -> true;
 		}
 
+		try{
+			Path input1File = new Path(this.dir + "input1.records");
+			FileSystem fs = input1File.getFileSystem();
+
+			fs.mkdirs(input1File);
+
+			input1Records = fs.create(input1File, FileSystem.WriteMode.NO_OVERWRITE);
+
+			setGuardIN1(guard1);
+			this.isWatchingInput1 = true;
+		}catch(IOException e){
+			LOG.error("IO exception when trying to access file for writing records. " + e.getMessage());
+		}
+
+	}
+
+	private void startWatchingInput2(String guardClassName) {
+
 		FilterFunction guard2;
 		try{
-			guard2 = loadFilterFunction(guard2ClassName);
+			guard2 = loadFilterFunction(guardClassName);
 		}catch(Exception e){
 			LOG.warn("Could not load guard2. Using no guard instead");
 			guard2 = (x) -> true;
 		}
 
-		switch(target){
-			case "input":
-				setGuardIN1(guard1);
-				this.isWatchingInput1 = true;
-				setGuardIN2(guard2);
-				this.isWatchingInput2 = true;
-				break;
-			case "input1":
-				setGuardIN1(guard1);
-				this.isWatchingInput1 = true;
-				break;
-			case "input2":
-				setGuardIN2(guard2);
-				this.isWatchingInput2 = true;
-				break;
-			case "output":
-				setGuardOUT(guard1);
-				this.isWatchingOutput = true;
-				break;
-			default:
-				throw new UnsupportedOperationException("target for watchpoint action must be either input, input1, input2 or output");
+		setGuardIN2(guard2);
+		this.isWatchingInput2 = true;
+
+	}
+
+	private void startWatchingOutput(String guardClassName) {
+
+		FilterFunction guard;
+		try{
+			guard = loadFilterFunction(guardClassName);
+		}catch(Exception e){
+			LOG.warn("Could not load guard1. Using no guard instead");
+			guard = (x) -> true;
 		}
+
+		setGuardOUT(guard);
+		this.isWatchingOutput = true;
+
 	}
 
 	private void stopWatching(String target) {
@@ -155,7 +209,7 @@ public class Watchpoint {
 		if(isWatchingInput1){
 			try{
 				if(guardIN1.filter(inStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize(
+					input1Records.write(serializationSchema.serialize(
 						(new Timestamp(System.currentTimeMillis())).toString() + " " +
 							identifier + ".input1" +  ": " +
 							inStreamRecord.toString() +
@@ -257,6 +311,14 @@ public class Watchpoint {
 			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);
 		}
 
+	}
+
+	private void close() {
+		try{
+			input1Records.close();
+		}catch(IOException e){
+
+		}
 	}
 
 	// ------------------------------------------------------------------------
