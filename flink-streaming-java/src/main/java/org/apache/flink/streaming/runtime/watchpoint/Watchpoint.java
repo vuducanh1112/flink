@@ -161,8 +161,19 @@ public class Watchpoint {
 			guard2 = (x) -> true;
 		}
 
-		setGuardIN2(guard2);
-		this.isWatchingInput2 = true;
+		try{
+			Path input2File = new Path(this.dir + "input2.records");
+			FileSystem fs = input2File.getFileSystem();
+
+			fs.mkdirs(input2File.getParent());
+
+			input1Records = fs.create(input2File, FileSystem.WriteMode.NO_OVERWRITE);
+
+			setGuardIN2(guard2);
+			this.isWatchingInput2 = true;
+		}catch(IOException e){
+			LOG.error("IO exception when trying to access file for writing records. " + e.getMessage());
+		}
 
 	}
 
@@ -176,8 +187,19 @@ public class Watchpoint {
 			guard = (x) -> true;
 		}
 
-		setGuardOUT(guard);
-		this.isWatchingOutput = true;
+		try{
+			Path outputFile = new Path(this.dir + "output.records");
+			FileSystem fs = outputFile.getFileSystem();
+
+			fs.mkdirs(outputFile.getParent());
+
+			input1Records = fs.create(outputFile, FileSystem.WriteMode.NO_OVERWRITE);
+
+			setGuardOUT(guard);
+			this.isWatchingInput1 = true;
+		}catch(IOException e){
+			LOG.error("IO exception when trying to access file for writing records. " + e.getMessage());
+		}
 
 	}
 
@@ -185,16 +207,21 @@ public class Watchpoint {
 		switch(target){
 			case "input":
 				this.isWatchingInput1 = false;
+				closeInput1Watcher();
 				this.isWatchingInput2 = false;
+				closeInput2Watcher();
 				break;
 			case "input1":
 				this.isWatchingInput1 = false;
+				closeInput1Watcher();
 				break;
 			case "input2":
 				this.isWatchingInput2 = false;
+				closeInput2Watcher();
 				break;
 			case "output":
 				this.isWatchingOutput = false;
+				closeOutputWatcher();
 				break;
 			default:
 				throw new UnsupportedOperationException("target for watchpoint action must be either input, input1, input2 or output");
@@ -313,9 +340,37 @@ public class Watchpoint {
 
 	}
 
-	private void close() {
+	public void close() {
+		closeInput1Watcher();
+		closeInput2Watcher();
+		closeOutputWatcher();
+	}
+
+	private void closeInput1Watcher() {
 		try{
-			input1Records.close();
+			if(input1Records != null) {
+				input1Records.close();
+			}
+		}catch(IOException e){
+
+		}
+	}
+
+	private void closeInput2Watcher() {
+		try{
+			if(input2Records != null) {
+				input2Records.close();
+			}
+		}catch(IOException e){
+
+		}
+	}
+
+	private void closeOutputWatcher() {
+		try{
+			if(outputRecords != null) {
+				outputRecords.close();
+			}
 		}catch(IOException e){
 
 		}

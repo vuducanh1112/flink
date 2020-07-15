@@ -379,6 +379,14 @@ public abstract class AbstractStreamOperator<OUT>
 			exception = ExceptionUtils.firstOrSuppressed(e, exception);
 		}
 
+		try {
+			if (watchpoint != null){
+				watchpoint.close();
+			}
+		} catch (Exception e) {
+			exception = ExceptionUtils.firstOrSuppressed(e, exception);
+		}
+
 		if (exception != null) {
 			throw exception;
 		}
