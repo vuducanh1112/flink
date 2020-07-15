@@ -74,7 +74,7 @@ public class Watchpoint {
 		this.isWatchingInput2 = false;
 		this.isWatchingOutput = false;
 
-		this.dir = "~/tmp/" +
+		this.dir = "tmp/" +
 			this.operator.getContainingTask().getEnvironment().getJobID() + "/" +
 			this.operator.getContainingTask().getName() + "_" +
 			this.operator.getOperatorID() + "_" +
@@ -139,7 +139,7 @@ public class Watchpoint {
 			Path input1File = new Path(this.dir + "input1.records");
 			FileSystem fs = input1File.getFileSystem();
 
-			fs.mkdirs(input1File);
+			fs.mkdirs(input1File.getParent());
 
 			input1Records = fs.create(input1File, FileSystem.WriteMode.NO_OVERWRITE);
 
