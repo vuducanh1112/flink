@@ -84,7 +84,7 @@ public class Watchpoint {
 
 		this.outputStream = System.out;
 		this.serializationSchema = new SimpleStringSchema();
-
+		
 	}
 
 	// ------------------------------------------------------------------------
@@ -197,7 +197,7 @@ public class Watchpoint {
 			outputRecords = fs.create(outputFile, FileSystem.WriteMode.NO_OVERWRITE);
 
 			setGuardOUT(guard);
-			this.isWatchingInput1 = true;
+			this.isWatchingOutput = true;
 		}catch(IOException e){
 			LOG.error("IO exception when trying to access file for writing records. " + e.getMessage());
 		}
@@ -253,7 +253,7 @@ public class Watchpoint {
 		if(isWatchingInput2){
 			try{
 				if(guardIN2.filter(inStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize(
+					input2Records.write(serializationSchema.serialize(
 						(new Timestamp(System.currentTimeMillis())).toString() + " " +
 							identifier + ".input2" +  ": " +
 							inStreamRecord.toString() +
@@ -269,7 +269,7 @@ public class Watchpoint {
 		if(isWatchingOutput){
 			try{
 				if(guardOUT.filter(outStreamRecord.getValue())){
-					outputStream.write(serializationSchema.serialize(
+					outputRecords.write(serializationSchema.serialize(
 						(new Timestamp(System.currentTimeMillis())).toString() + " " +
 							identifier + ".output" + ": " +
 							outStreamRecord.toString() +
