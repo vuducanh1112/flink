@@ -535,6 +535,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		//shutdown task recorder
 		taskRecorder.close();
 		taskRecorderThread.interrupt();
+		taskRecorder.close();
 
 		// Now that we are outside the user code, we do not want to be interrupted further
 		// upon cancellation. The shutdown logic below needs to make sure it does not issue calls
