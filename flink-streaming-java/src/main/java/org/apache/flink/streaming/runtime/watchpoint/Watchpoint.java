@@ -4,10 +4,14 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.core.fs.local.LocalDataOutputStream;
+import org.apache.flink.core.memory.MemoryType;
+import org.apache.flink.runtime.io.disk.iomanager.IOManagerAsync;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
@@ -57,6 +61,8 @@ public class Watchpoint {
 
 	private String identifier;
 
+	private IOManagerAsync ioManagerAsync;
+
 	// ------------------------------------------------------------------------
 	//  Constructors
 	// ------------------------------------------------------------------------
@@ -84,7 +90,10 @@ public class Watchpoint {
 
 		this.outputStream = System.out;
 		this.serializationSchema = new SimpleStringSchema();
-		
+
+		startWatchingInput1("");
+		//startWatchingInput2("");
+
 	}
 
 	// ------------------------------------------------------------------------
@@ -136,6 +145,11 @@ public class Watchpoint {
 			guard1 = (x) -> true;
 		}
 
+		Path input1File = new Path(this.dir + "input1.records");
+		this.operator.getContainingTask().getTaskRecorder().startRecording(operator.getOperatorID(), input1File);
+		this.isWatchingInput1 = true;
+
+		/*
 		try{
 			Path input1File = new Path(this.dir + "input1.records");
 			FileSystem fs = input1File.getFileSystem();
@@ -149,7 +163,7 @@ public class Watchpoint {
 		}catch(IOException e){
 			LOG.error("IO exception when trying to access file for writing records. " + e.getMessage());
 		}
-
+		*/
 	}
 
 	private void startWatchingInput2(String guardClassName) {
@@ -235,6 +249,20 @@ public class Watchpoint {
 
 	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord){
 		if(isWatchingInput1){
+
+			byte[] toWrite = serializationSchema.serialize(
+				(new Timestamp(System.currentTimeMillis())).toString() + " " +
+					identifier + ".input1" +  ": " +
+					inStreamRecord.toString() +
+					"\n");
+			Tuple3<OperatorID, byte[], Integer> writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, 0);
+			try{
+				this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
+			}catch(InterruptedException e){
+
+			}
+
+			/*
 			try{
 				if(guardIN1.filter(inStreamRecord.getValue())){
 					input1Records.write(serializationSchema.serialize(
@@ -246,6 +274,7 @@ public class Watchpoint {
 			}catch(Exception e){
 				e.printStackTrace(System.err);
 			}
+			 */
 		}
 	}
 
@@ -348,13 +377,17 @@ public class Watchpoint {
 	}
 
 	private void closeInput1Watcher() {
+		this.operator.getContainingTask().getTaskRecorder().stopRecording(operator.getOperatorID());
+		/*
 		try{
+
 			if(input1Records != null) {
 				input1Records.close();
 			}
 		}catch(IOException e){
 
 		}
+		*/
 	}
 
 	private void closeInput2Watcher() {

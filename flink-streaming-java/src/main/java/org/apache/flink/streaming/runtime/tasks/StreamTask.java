@@ -70,6 +70,7 @@ import org.apache.flink.streaming.runtime.tasks.mailbox.MailboxExecutorFactory;
 import org.apache.flink.streaming.runtime.tasks.mailbox.MailboxProcessor;
 import org.apache.flink.streaming.runtime.tasks.mailbox.TaskMailbox;
 import org.apache.flink.streaming.runtime.tasks.mailbox.TaskMailboxImpl;
+import org.apache.flink.streaming.runtime.watchpoint.TaskRecorder;
 import org.apache.flink.streaming.runtime.watchpoint.Watchpoint;
 import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.Preconditions;
@@ -438,6 +439,11 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			throw new CancelTaskException();
 		}
 
+
+		taskRecorder = new TaskRecorder();
+		taskRecorderThread = new Thread(taskRecorder, "task recorder");
+		taskRecorderThread.start();
+
 		// -------- Invoke --------
 		LOG.debug("Invoking {}", getName());
 
@@ -525,6 +531,10 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	private void cleanUpInvoke() throws Exception {
 		// clean up everything we initialized
 		isRunning = false;
+
+		//shutdown task recorder
+		taskRecorder.close();
+		taskRecorderThread.interrupt();
 
 		// Now that we are outside the user code, we do not want to be interrupted further
 		// upon cancellation. The shutdown logic below needs to make sure it does not issue calls
@@ -1506,6 +1516,14 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	//  Watchpoint
 	// ------------------------------------------------------------------------
 
+
+	private TaskRecorder taskRecorder;
+
+	private Thread taskRecorderThread;
+
+	public TaskRecorder getTaskRecorder() {
+		return this.taskRecorder;
+	}
 
 	@Override
 	public void operateWatchpoint(WatchpointCommand watchpointCommand) {
