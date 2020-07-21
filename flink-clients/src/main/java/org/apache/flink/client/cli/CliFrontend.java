@@ -688,7 +688,10 @@ public class CliFrontend {
 			throw new CliArgsException("action must be either startWatching or stopWatching");
 		}
 		String whatToWatch = watchpointOptions.getTarget();
-		if(whatToWatch.equals("input") == false && whatToWatch.equals("output") == false){
+		if(whatToWatch.equals("input") == false &&
+			whatToWatch.equals("input1") == false &&
+			whatToWatch.equals("input2") == false &&
+			whatToWatch.equals("output") == false){
 			throw new CliArgsException("target must be either input or output");
 		}
 

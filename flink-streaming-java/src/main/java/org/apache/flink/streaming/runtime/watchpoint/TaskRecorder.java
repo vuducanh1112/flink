@@ -86,17 +86,20 @@ public class TaskRecorder implements Runnable {
 	}
 
 	public void startRecording(OperatorID operatorID, Path recordsFile) {
-		try{
-			FileSystem fs = recordsFile.getFileSystem();
 
-			fs.mkdirs(recordsFile.getParent());
+		synchronized (lock){
+			try{
+				FileSystem fs = recordsFile.getFileSystem();
 
-			FSDataOutputStream recordsFileOutputStream = fs.create(recordsFile, FileSystem.WriteMode.NO_OVERWRITE);
+				fs.mkdirs(recordsFile.getParent());
 
-			watchpointRecordFiles.put(operatorID, recordsFileOutputStream);
+				FSDataOutputStream recordsFileOutputStream = fs.create(recordsFile, FileSystem.WriteMode.NO_OVERWRITE);
 
-		}catch(IOException e){
+				watchpointRecordFiles.put(operatorID, recordsFileOutputStream);
 
+			}catch(IOException e){
+
+			}
 		}
 
 	}
