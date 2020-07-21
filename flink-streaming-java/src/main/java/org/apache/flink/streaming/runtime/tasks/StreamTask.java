@@ -522,6 +522,11 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		// make sure all buffered data is flushed
 		operatorChain.flushOutputs();
 
+		//shutdown task recorder
+		taskRecorder.stop();
+		taskRecorderThread.interrupt();
+		taskRecorder.close();
+
 		// make an attempt to dispose the operators such that failures in the dispose call
 		// still let the computation fail
 		disposeAllOperators(false);
@@ -531,11 +536,6 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	private void cleanUpInvoke() throws Exception {
 		// clean up everything we initialized
 		isRunning = false;
-
-		//shutdown task recorder
-		taskRecorder.close();
-		taskRecorderThread.interrupt();
-		taskRecorder.close();
 
 		// Now that we are outside the user code, we do not want to be interrupted further
 		// upon cancellation. The shutdown logic below needs to make sure it does not issue calls
