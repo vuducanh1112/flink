@@ -428,6 +428,10 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 				timerThreadFactory);
 		}
 
+		taskRecorder = new TaskRecorder();
+		taskRecorderThread = new Thread(taskRecorder, "task recorder");
+		taskRecorderThread.start();
+
 		operatorChain = new OperatorChain<>(this, recordWriter);
 		headOperator = operatorChain.getHeadOperator();
 
@@ -438,11 +442,6 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		if (canceled) {
 			throw new CancelTaskException();
 		}
-
-
-		taskRecorder = new TaskRecorder();
-		taskRecorderThread = new Thread(taskRecorder, "task recorder");
-		taskRecorderThread.start();
 
 		// -------- Invoke --------
 		LOG.debug("Invoking {}", getName());
