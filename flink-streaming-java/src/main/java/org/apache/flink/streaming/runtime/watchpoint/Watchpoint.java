@@ -6,6 +6,7 @@ import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
@@ -264,15 +265,15 @@ public class Watchpoint {
 						inStreamRecord.toString() +
 						"\n");
 
-				Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest;
+				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest;
 
 
 				if(currentBufferPos + toWrite.length >= buffer.length){
 
 					if(currentBufferPos == 0){ //record is larger than the buffer
-						writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, TaskRecorder.Command.WRITE);
+						writeRequest = new Tuple4<>(operator.getOperatorID(), toWrite, toWrite.length, TaskRecorder.Command.WRITE);
 					}else{
-						writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, TaskRecorder.Command.WRITE);
+						writeRequest = new Tuple4<>(operator.getOperatorID(), buffer, currentBufferPos, TaskRecorder.Command.WRITE);
 					}
 
 					try{
@@ -401,7 +402,7 @@ public class Watchpoint {
 	public void flush() {
 		synchronized (lock){
 			if(currentBufferPos > 0){
-				Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, TaskRecorder.Command.WRITE);
+				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), buffer, currentBufferPos, TaskRecorder.Command.WRITE);
 				try{
 					this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
 					currentBufferPos = 0;
@@ -423,7 +424,7 @@ public class Watchpoint {
 		synchronized (lock) {
 			flush();
 
-			Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest = new Tuple3<>(operator.getOperatorID(), null, TaskRecorder.Command.STOP);
+			Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), null, -1, TaskRecorder.Command.STOP);
 			try{
 				this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
 			}catch(InterruptedException e){

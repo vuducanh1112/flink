@@ -1,6 +1,7 @@
 package org.apache.flink.streaming.runtime.watchpoint;
 
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
@@ -30,7 +31,7 @@ public class TaskRecorder implements Runnable {
 
 	private Map<OperatorID, FileOutputStream> watchpointRecordFiles;
 
-	private LinkedBlockingQueue<Tuple3<OperatorID,byte[],TaskRecorder.Command>> recordsToWriteQueue;
+	private LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer, Command>> recordsToWriteQueue;
 
 	private volatile boolean alive;
 
@@ -54,7 +55,7 @@ public class TaskRecorder implements Runnable {
 
 		while (this.alive) {
 
-			Tuple3<OperatorID,byte[],TaskRecorder.Command> request = null;
+			Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command> request = null;
 
 			// get the next buffer. ignore interrupts that are not due to a shutdown.
 			while (alive && request == null) {
@@ -78,9 +79,9 @@ public class TaskRecorder implements Runnable {
 				synchronized (lock){
 					FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
 					if(outputStream != null){
-						switch(request.f2){
+						switch(request.f3){
 							case WRITE:
-								outputStream.write(request.f1);
+								outputStream.write(request.f1, 0, request.f2);
 								break;
 							case STOP:
 								stopRecording(request.f0);
@@ -154,7 +155,7 @@ public class TaskRecorder implements Runnable {
 
 	}
 
-	public LinkedBlockingQueue<Tuple3<OperatorID,byte[],TaskRecorder.Command>> getRecordsToWriteQueue(){
+	public LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command>> getRecordsToWriteQueue(){
 		return this.recordsToWriteQueue;
 	}
 
