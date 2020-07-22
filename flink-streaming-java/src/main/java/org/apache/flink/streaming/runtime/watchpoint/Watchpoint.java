@@ -61,7 +61,7 @@ public class Watchpoint {
 
 	private String identifier;
 
-	public static final int BUFFER_SIZE = 5 * 1024 * 1024;
+	public static final int BUFFER_SIZE = 10 * 1024 * 1024;
 
 	private byte[] buffer;
 
@@ -154,9 +154,11 @@ public class Watchpoint {
 			guard1 = (x) -> true;
 		}
 
-		Path input1File = new Path(this.dir + "input1.records");
-		this.operator.getContainingTask().getTaskRecorder().startRecording(operator.getOperatorID(), input1File);
-		this.isWatchingInput1 = true;
+		synchronized (lock) {
+			Path input1File = new Path(this.dir + "input1.records");
+			this.operator.getContainingTask().getTaskRecorder().startRecording(operator.getOperatorID(), input1File);
+			this.isWatchingInput1 = true;
+		}
 
 		/*
 		try{
@@ -230,22 +232,16 @@ public class Watchpoint {
 	private void stopWatching(String target) {
 		switch(target){
 			case "input":
-				this.isWatchingInput1 = false;
 				closeInput1Watcher();
-				this.isWatchingInput2 = false;
 				closeInput2Watcher();
 				break;
 			case "input1":
-				this.isWatchingInput1 = false;
 				closeInput1Watcher();
-				flush();
 				break;
 			case "input2":
-				this.isWatchingInput2 = false;
 				closeInput2Watcher();
 				break;
 			case "output":
-				this.isWatchingOutput = false;
 				closeOutputWatcher();
 				break;
 			default:
@@ -258,23 +254,25 @@ public class Watchpoint {
 	// ------------------------------------------------------------------------
 
 	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord){
-		if(isWatchingInput1){
 
-			byte[] toWrite = serializationSchema.serialize(
-				(new Timestamp(System.currentTimeMillis())).toString() + " " +
-					identifier + ".input1" +  ": " +
-					inStreamRecord.toString() +
-					"\n");
+		synchronized (lock) {
+			if(isWatchingInput1){
 
-			Tuple3<OperatorID, byte[], Integer> writeRequest;
+				byte[] toWrite = serializationSchema.serialize(
+					(new Timestamp(System.currentTimeMillis())).toString() + " " +
+//					identifier + ".input1" +  ": " +
+						inStreamRecord.toString() +
+						"\n");
 
-			synchronized(lock){
+				Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest;
+
+
 				if(currentBufferPos + toWrite.length >= buffer.length){
 
 					if(currentBufferPos == 0){ //record is larger than the buffer
-						writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, 0);
+						writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, TaskRecorder.Command.WRITE);
 					}else{
-						writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, 0);
+						writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, TaskRecorder.Command.WRITE);
 					}
 
 					try{
@@ -289,7 +287,7 @@ public class Watchpoint {
 					currentBufferPos = currentBufferPos + toWrite.length;
 					return;
 				}
-			}
+
 
 			/*
 			try{
@@ -304,6 +302,7 @@ public class Watchpoint {
 				e.printStackTrace(System.err);
 			}
 			 */
+			}
 		}
 	}
 
@@ -402,7 +401,7 @@ public class Watchpoint {
 	public void flush() {
 		synchronized (lock){
 			if(currentBufferPos > 0){
-				Tuple3<OperatorID, byte[], Integer> writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, 0);
+				Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, TaskRecorder.Command.WRITE);
 				try{
 					this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
 					currentBufferPos = 0;
@@ -420,7 +419,23 @@ public class Watchpoint {
 	}
 
 	private void closeInput1Watcher() {
-		this.operator.getContainingTask().getTaskRecorder().stopRecording(operator.getOperatorID());
+
+		synchronized (lock) {
+			flush();
+
+			Tuple3<OperatorID, byte[], TaskRecorder.Command> writeRequest = new Tuple3<>(operator.getOperatorID(), null, TaskRecorder.Command.STOP);
+			try{
+				this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
+			}catch(InterruptedException e){
+
+			}
+
+			isWatchingInput1 = false;
+		}
+
+
+
+		//this.operator.getContainingTask().getTaskRecorder().stopRecording(operator.getOperatorID());
 		/*
 		try{
 

@@ -20,9 +20,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class TaskRecorder implements Runnable {
 
+	public enum Command{
+
+		WRITE,
+
+		STOP
+
+	}
+
 	private Map<OperatorID, FileOutputStream> watchpointRecordFiles;
 
-	private LinkedBlockingQueue<Tuple3<OperatorID,byte[],Integer>> recordsToWriteQueue;
+	private LinkedBlockingQueue<Tuple3<OperatorID,byte[],TaskRecorder.Command>> recordsToWriteQueue;
 
 	private volatile boolean alive;
 
@@ -46,7 +54,7 @@ public class TaskRecorder implements Runnable {
 
 		while (this.alive) {
 
-			Tuple3<OperatorID,byte[],Integer> request = null;
+			Tuple3<OperatorID,byte[],TaskRecorder.Command> request = null;
 
 			// get the next buffer. ignore interrupts that are not due to a shutdown.
 			while (alive && request == null) {
@@ -70,7 +78,18 @@ public class TaskRecorder implements Runnable {
 				synchronized (lock){
 					FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
 					if(outputStream != null){
-						outputStream.write(request.f1);
+						switch(request.f2){
+							case WRITE:
+								outputStream.write(request.f1);
+								break;
+							case STOP:
+								stopRecording(request.f0);
+								break;
+							default:
+								throw new Exception();
+						}
+
+
 					}
 				}
 			}
@@ -135,7 +154,7 @@ public class TaskRecorder implements Runnable {
 
 	}
 
-	public LinkedBlockingQueue<Tuple3<OperatorID,byte[],Integer>> getRecordsToWriteQueue(){
+	public LinkedBlockingQueue<Tuple3<OperatorID,byte[],TaskRecorder.Command>> getRecordsToWriteQueue(){
 		return this.recordsToWriteQueue;
 	}
 
