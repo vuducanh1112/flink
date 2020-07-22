@@ -521,15 +521,15 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		// make sure all buffered data is flushed
 		operatorChain.flushOutputs();
 
-		//shutdown task recorder
-		taskRecorder.stop();
-		taskRecorderThread.interrupt();
-		taskRecorder.close();
-
 		// make an attempt to dispose the operators such that failures in the dispose call
 		// still let the computation fail
 		disposeAllOperators(false);
 		disposedOperators = true;
+
+		//shutdown task recorder
+		taskRecorder.stop();
+		taskRecorderThread.interrupt();
+		taskRecorder.close();
 	}
 
 	private void cleanUpInvoke() throws Exception {
