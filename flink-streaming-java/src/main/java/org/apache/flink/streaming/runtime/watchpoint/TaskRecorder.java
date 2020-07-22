@@ -98,7 +98,7 @@ public class TaskRecorder implements Runnable {
 
 				fs.mkdirs(recordsFile.getParent());
 
-				recordsFileOutputStream = new FileOutputStream(((LocalFileSystem)fs).pathToFile(recordsFile), true);
+				recordsFileOutputStream = new FileOutputStream(new File(recordsFile.makeQualified(fs).getPath()), true);
 
 				watchpointRecordFiles.put(operatorID, recordsFileOutputStream);
 
