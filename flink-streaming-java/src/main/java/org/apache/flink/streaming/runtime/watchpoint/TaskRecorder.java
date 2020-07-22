@@ -4,10 +4,14 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.core.fs.local.LocalDataOutputStream;
+import org.apache.flink.core.fs.local.LocalFileSystem;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.streaming.api.operators.StreamOperator;
 import org.apache.flink.streaming.runtime.tasks.OperatorChain;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class TaskRecorder implements Runnable {
 
-	private Map<OperatorID, FSDataOutputStream> watchpointRecordFiles;
+	private Map<OperatorID, FileOutputStream> watchpointRecordFiles;
 
 	private LinkedBlockingQueue<Tuple3<OperatorID,byte[],Integer>> recordsToWriteQueue;
 
@@ -64,7 +68,7 @@ public class TaskRecorder implements Runnable {
 			try {
 				// write buffer to the specified channel
 				synchronized (lock){
-					FSDataOutputStream outputStream = watchpointRecordFiles.get(request.f0);
+					FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
 					if(outputStream != null){
 						outputStream.write(request.f1);
 					}
@@ -90,10 +94,11 @@ public class TaskRecorder implements Runnable {
 		synchronized (lock){
 			try{
 				FileSystem fs = recordsFile.getFileSystem();
+				FileOutputStream recordsFileOutputStream;
 
 				fs.mkdirs(recordsFile.getParent());
 
-				FSDataOutputStream recordsFileOutputStream = fs.create(recordsFile, FileSystem.WriteMode.NO_OVERWRITE);
+				recordsFileOutputStream = new FileOutputStream(((LocalFileSystem)fs).pathToFile(recordsFile), true);
 
 				watchpointRecordFiles.put(operatorID, recordsFileOutputStream);
 
@@ -107,9 +112,10 @@ public class TaskRecorder implements Runnable {
 	public void stopRecording(OperatorID operatorID) {
 
 		synchronized (lock) {
-			FSDataOutputStream outputStream = watchpointRecordFiles.get(operatorID);
+			FileOutputStream outputStream = watchpointRecordFiles.get(operatorID);
 			if (outputStream != null) {
 				try {
+					outputStream.flush();
 					outputStream.close();
 					watchpointRecordFiles.put(operatorID, null);
 				} catch (IOException e) {
@@ -122,14 +128,8 @@ public class TaskRecorder implements Runnable {
 	public void close(){
 
 		synchronized (lock) {
-			for(FSDataOutputStream outputStream : watchpointRecordFiles.values()){
-				if(outputStream != null){
-					try{
-						outputStream.close();
-					}catch(IOException e){
-
-					}
-				}
+			for(OperatorID operatorID : watchpointRecordFiles.keySet()){
+				stopRecording(operatorID);
 			}
 		}
 

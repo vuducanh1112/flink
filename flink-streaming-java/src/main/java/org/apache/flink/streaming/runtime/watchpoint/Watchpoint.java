@@ -61,7 +61,13 @@ public class Watchpoint {
 
 	private String identifier;
 
-	private IOManagerAsync ioManagerAsync;
+	public static final int BUFFER_SIZE = 5 * 1024 * 1024;
+
+	private byte[] buffer;
+
+	private int currentBufferPos;
+
+	private Object lock = new Object();
 
 	// ------------------------------------------------------------------------
 	//  Constructors
@@ -70,6 +76,9 @@ public class Watchpoint {
 	public Watchpoint(AbstractStreamOperator operator){
 		this.operator = checkNotNull(operator);
 		this.setIdentifier();
+
+		buffer = new byte[BUFFER_SIZE];
+		currentBufferPos = 0;
 
 		//initialize no filter i.e. any record passes
 		this.guardIN1 = (x) -> true;
@@ -229,6 +238,7 @@ public class Watchpoint {
 			case "input1":
 				this.isWatchingInput1 = false;
 				closeInput1Watcher();
+				flush();
 				break;
 			case "input2":
 				this.isWatchingInput2 = false;
@@ -255,11 +265,30 @@ public class Watchpoint {
 					identifier + ".input1" +  ": " +
 					inStreamRecord.toString() +
 					"\n");
-			Tuple3<OperatorID, byte[], Integer> writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, 0);
-			try{
-				this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
-			}catch(InterruptedException e){
 
+			Tuple3<OperatorID, byte[], Integer> writeRequest;
+
+			synchronized(lock){
+				if(currentBufferPos + toWrite.length >= buffer.length){
+
+					if(currentBufferPos == 0){ //record is larger than the buffer
+						writeRequest = new Tuple3<>(operator.getOperatorID(), toWrite, 0);
+					}else{
+						writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, 0);
+					}
+
+					try{
+						this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
+						currentBufferPos = 0;
+					}catch(InterruptedException e){
+
+					}
+
+				}else{
+					System.arraycopy(toWrite, 0, buffer, currentBufferPos, toWrite.length);
+					currentBufferPos = currentBufferPos + toWrite.length;
+					return;
+				}
 			}
 
 			/*
@@ -368,6 +397,20 @@ public class Watchpoint {
 			throw new FlinkException("Could not instantiate the filter function " + className + ".", e);
 		}
 
+	}
+
+	public void flush() {
+		synchronized (lock){
+			if(currentBufferPos > 0){
+				Tuple3<OperatorID, byte[], Integer> writeRequest = new Tuple3<>(operator.getOperatorID(), buffer, 0);
+				try{
+					this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
+					currentBufferPos = 0;
+				}catch(InterruptedException e){
+
+				}
+			}
+		}
 	}
 
 	public void close() {
