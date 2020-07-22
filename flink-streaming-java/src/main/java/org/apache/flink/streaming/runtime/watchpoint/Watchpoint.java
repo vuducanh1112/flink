@@ -257,37 +257,34 @@ public class Watchpoint {
 	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord){
 
 		synchronized (lock) {
-			if(isWatchingInput1){
 
-				byte[] toWrite = serializationSchema.serialize(
-					(new Timestamp(System.currentTimeMillis())).toString() + " " +
+			try{
+				if(isWatchingInput1 && guardIN1.filter(inStreamRecord.getValue())){
+
+					byte[] toWrite = serializationSchema.serialize(
+						(new Timestamp(System.currentTimeMillis())).toString() + " " +
 //					identifier + ".input1" +  ": " +
-						inStreamRecord.toString() +
-						"\n");
+							inStreamRecord.toString() +
+							"\n");
 
-				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest;
+					Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest;
 
+					if(currentBufferPos + toWrite.length >= buffer.length){
 
-				if(currentBufferPos + toWrite.length >= buffer.length){
+						if(currentBufferPos == 0){ //record is larger than the buffer
+							writeRequest = new Tuple4<>(operator.getOperatorID(), toWrite, toWrite.length, TaskRecorder.Command.WRITE);
+						}else{
+							writeRequest = new Tuple4<>(operator.getOperatorID(), buffer, currentBufferPos, TaskRecorder.Command.WRITE);
+						}
 
-					if(currentBufferPos == 0){ //record is larger than the buffer
-						writeRequest = new Tuple4<>(operator.getOperatorID(), toWrite, toWrite.length, TaskRecorder.Command.WRITE);
-					}else{
-						writeRequest = new Tuple4<>(operator.getOperatorID(), buffer, currentBufferPos, TaskRecorder.Command.WRITE);
-					}
-
-					try{
 						this.operator.getContainingTask().getTaskRecorder().getRecordsToWriteQueue().put(writeRequest);
 						currentBufferPos = 0;
-					}catch(InterruptedException e){
 
+					}else{
+						System.arraycopy(toWrite, 0, buffer, currentBufferPos, toWrite.length);
+						currentBufferPos = currentBufferPos + toWrite.length;
+						return;
 					}
-
-				}else{
-					System.arraycopy(toWrite, 0, buffer, currentBufferPos, toWrite.length);
-					currentBufferPos = currentBufferPos + toWrite.length;
-					return;
-				}
 
 
 			/*
@@ -303,6 +300,9 @@ public class Watchpoint {
 				e.printStackTrace(System.err);
 			}
 			 */
+				}
+			}catch(Exception e){
+
 			}
 		}
 	}

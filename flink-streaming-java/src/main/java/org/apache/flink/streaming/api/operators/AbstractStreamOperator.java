@@ -346,6 +346,14 @@ public abstract class AbstractStreamOperator<OUT>
 			null;
 
 		try {
+			if (watchpoint != null){
+				watchpoint.close();
+			}
+		} catch (Exception e) {
+			exception = ExceptionUtils.firstOrSuppressed(e, exception);
+		}
+
+		try {
 			if (taskCloseableRegistry == null ||
 				taskCloseableRegistry.unregisterCloseable(operatorStateBackend)) {
 				operatorStateBackend.close();
@@ -374,14 +382,6 @@ public abstract class AbstractStreamOperator<OUT>
 		try {
 			if (keyedStateBackend != null) {
 				keyedStateBackend.dispose();
-			}
-		} catch (Exception e) {
-			exception = ExceptionUtils.firstOrSuppressed(e, exception);
-		}
-
-		try {
-			if (watchpoint != null){
-				watchpoint.close();
 			}
 		} catch (Exception e) {
 			exception = ExceptionUtils.firstOrSuppressed(e, exception);

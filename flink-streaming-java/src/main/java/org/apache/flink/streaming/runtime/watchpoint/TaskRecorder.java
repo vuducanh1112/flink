@@ -1,20 +1,13 @@
 package org.apache.flink.streaming.runtime.watchpoint;
 
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
-import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.core.fs.local.LocalDataOutputStream;
-import org.apache.flink.core.fs.local.LocalFileSystem;
 import org.apache.flink.runtime.jobgraph.OperatorID;
-import org.apache.flink.streaming.api.operators.StreamOperator;
-import org.apache.flink.streaming.runtime.tasks.OperatorChain;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,7 +35,6 @@ public class TaskRecorder implements Runnable {
 	public TaskRecorder() {
 
 		watchpointRecordFiles = new HashMap();
-		watchpointRecordFiles = Collections.synchronizedMap(watchpointRecordFiles);
 
 		recordsToWriteQueue = new LinkedBlockingQueue<>(10 * QUEUE_CAPACITY_PER_OPERATOR);
 
@@ -71,36 +63,33 @@ public class TaskRecorder implements Runnable {
 				}
 			}
 
-			// remember any IO exception that occurs, so it can be reported to the writer
-			IOException ioex = null;
+			handleRequest(request);
 
-			try {
-				// write buffer to the specified channel
-				synchronized (lock){
-					FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
-					if(outputStream != null){
-						switch(request.f3){
-							case WRITE:
-								outputStream.write(request.f1, 0, request.f2);
-								break;
-							case STOP:
-								stopRecording(request.f0);
-								break;
-							default:
-								throw new Exception();
-						}
+		}
+	}
 
-
+	private void handleRequest(Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command> request){
+		try {
+			synchronized (lock){
+				FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
+				if(outputStream != null){
+					switch(request.f3){
+						case WRITE:
+							outputStream.write(request.f1, 0, request.f2);
+							break;
+						case STOP:
+							stopRecording(request.f0);
+							break;
+						default:
+							throw new Exception();
 					}
 				}
 			}
-			catch (IOException e) {
-				ioex = e;
-			}
-			catch (Throwable t) {
-				ioex = new IOException("The buffer could not be written: " + t.getMessage(), t);
-				//IOManagerAsync.LOG.error("I/O writing thread encountered an error" + (t.getMessage() == null ? "." : ": " + t.getMessage()), t);
-			}
+		}
+		catch (IOException e) {
+
+		}
+		catch (Throwable t) {
 
 		}
 	}
@@ -147,12 +136,26 @@ public class TaskRecorder implements Runnable {
 
 	public void close(){
 
+		flush();
+
 		synchronized (lock) {
 			for(OperatorID operatorID : watchpointRecordFiles.keySet()){
 				stopRecording(operatorID);
 			}
 		}
 
+	}
+
+	public void flush(){
+		synchronized (lock){
+			try{
+				while(recordsToWriteQueue.isEmpty() == false){
+					handleRequest(recordsToWriteQueue.take());
+				}
+			}catch(InterruptedException e){
+
+			}
+		}
 	}
 
 	public LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command>> getRecordsToWriteQueue(){
