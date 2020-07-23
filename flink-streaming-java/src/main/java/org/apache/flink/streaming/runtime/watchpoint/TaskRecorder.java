@@ -16,15 +16,39 @@ public class TaskRecorder implements Runnable {
 
 	public enum Command{
 
-		WRITE,
+		RECORD_INPUT1(0, true),
 
-		STOP
+		RECORD_INPUT2(1, true),
 
+		RECORD_OUTPUT(2, true),
+
+		STOP_RECORDING_INPUT1(0, false),
+
+		STOP_RECORDING_INPUT2(1, false),
+
+		STOP_RECORDING_OUTPUT(2, false);
+
+		private int streamIndex;
+
+		private boolean record;
+
+		private Command(int streamIndex, boolean record){
+			this.streamIndex = streamIndex;
+			this.record = record;
+		}
+
+		public int getStreamIndex() {
+			return this.streamIndex;
+		}
+
+		public boolean isRecord() {
+			return record;
+		}
 	}
 
-	private Map<OperatorID, FileOutputStream> watchpointRecordFiles;
+	private Map<OperatorID, FileOutputStream[]> watchpointRecordFiles;
 
-	private LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer, Command>> recordsToWriteQueue;
+	private LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer, Command>> requestQueue;
 
 	private volatile boolean alive;
 
@@ -36,14 +60,14 @@ public class TaskRecorder implements Runnable {
 
 		watchpointRecordFiles = new HashMap();
 
-		recordsToWriteQueue = new LinkedBlockingQueue<>(10 * QUEUE_CAPACITY_PER_OPERATOR);
-
-		alive = true;
+		requestQueue = new LinkedBlockingQueue<>(10 * QUEUE_CAPACITY_PER_OPERATOR);
 
 	}
 
 	@Override
 	public void run() {
+
+		alive = true;
 
 		while (this.alive) {
 
@@ -52,7 +76,8 @@ public class TaskRecorder implements Runnable {
 			// get the next buffer. ignore interrupts that are not due to a shutdown.
 			while (alive && request == null) {
 				try {
-					request = recordsToWriteQueue.take();
+					request = requestQueue.take();
+					handleRequest(request);
 				}
 				catch (InterruptedException e) {
 					if (!this.alive) {
@@ -62,26 +87,18 @@ public class TaskRecorder implements Runnable {
 					}
 				}
 			}
-
-			handleRequest(request);
-
 		}
 	}
 
 	private void handleRequest(Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command> request){
 		try {
 			synchronized (lock){
-				FileOutputStream outputStream = watchpointRecordFiles.get(request.f0);
+				FileOutputStream outputStream = watchpointRecordFiles.get(request.f0)[request.f3.getStreamIndex()];
 				if(outputStream != null){
-					switch(request.f3){
-						case WRITE:
-							outputStream.write(request.f1, 0, request.f2);
-							break;
-						case STOP:
-							stopRecording(request.f0);
-							break;
-						default:
-							throw new Exception();
+					if(request.f3.isRecord()){
+						outputStream.write(request.f1, 0, request.f2);
+					}else{
+						stopRecording(request.f0, request.f3);
 					}
 				}
 			}
@@ -98,7 +115,7 @@ public class TaskRecorder implements Runnable {
 		alive = false;
 	}
 
-	public void startRecording(OperatorID operatorID, Path recordsFile) {
+	public void startRecording(OperatorID operatorID, Path recordsFile, Command command) {
 
 		synchronized (lock){
 			try{
@@ -109,7 +126,12 @@ public class TaskRecorder implements Runnable {
 
 				recordsFileOutputStream = new FileOutputStream(new File(recordsFile.makeQualified(fs).getPath()), true);
 
-				watchpointRecordFiles.put(operatorID, recordsFileOutputStream);
+				if(watchpointRecordFiles.containsKey(operatorID)){
+					watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = recordsFileOutputStream;
+				}else{
+					//each operator has three file output streams: input1, input2, output
+					watchpointRecordFiles.put(operatorID, new FileOutputStream[3]);
+				}
 
 			}catch(IOException e){
 
@@ -118,15 +140,15 @@ public class TaskRecorder implements Runnable {
 
 	}
 
-	public void stopRecording(OperatorID operatorID) {
+	public void stopRecording(OperatorID operatorID, Command command) {
 
 		synchronized (lock) {
-			FileOutputStream outputStream = watchpointRecordFiles.get(operatorID);
+			FileOutputStream outputStream = watchpointRecordFiles.get(operatorID)[command.getStreamIndex()];
 			if (outputStream != null) {
 				try {
 					outputStream.flush();
 					outputStream.close();
-					watchpointRecordFiles.put(operatorID, null);
+					watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = null;
 				} catch (IOException e) {
 
 				}
@@ -140,7 +162,9 @@ public class TaskRecorder implements Runnable {
 
 		synchronized (lock) {
 			for(OperatorID operatorID : watchpointRecordFiles.keySet()){
-				stopRecording(operatorID);
+				stopRecording(operatorID, Command.STOP_RECORDING_INPUT1);
+				stopRecording(operatorID, Command.STOP_RECORDING_INPUT2);
+				stopRecording(operatorID, Command.STOP_RECORDING_OUTPUT);
 			}
 		}
 
@@ -149,8 +173,8 @@ public class TaskRecorder implements Runnable {
 	public void flush(){
 		synchronized (lock){
 			try{
-				while(recordsToWriteQueue.isEmpty() == false){
-					handleRequest(recordsToWriteQueue.take());
+				while(requestQueue.isEmpty() == false){
+					handleRequest(requestQueue.take());
 				}
 			}catch(InterruptedException e){
 
@@ -158,8 +182,8 @@ public class TaskRecorder implements Runnable {
 		}
 	}
 
-	public LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command>> getRecordsToWriteQueue(){
-		return this.recordsToWriteQueue;
+	public LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer,TaskRecorder.Command>> getRequestQueue(){
+		return this.requestQueue;
 	}
 
 }
