@@ -11,6 +11,8 @@ import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.watchpoint.WatchpointCommand;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
+import org.apache.flink.streaming.api.operators.StreamSink;
+import org.apache.flink.streaming.api.operators.StreamSource;
 import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.util.FlinkException;
@@ -76,7 +78,7 @@ public class Watchpoint {
 	private Object lock = new Object();
 
 	// ------------------------------------------------------------------------
-	//  Constructors
+	//  Constructors and Initializers
 	// ------------------------------------------------------------------------
 
 	public Watchpoint(AbstractStreamOperator operator){
@@ -91,34 +93,45 @@ public class Watchpoint {
 			this.operator.getContainingTask().getEnvironment().getTaskInfo().getIndexOfThisSubtask() +
 			"/";
 
-		input1Buffer = new byte[DEFAULT_BUFFER_SIZE];
-		outputBuffer = new byte[DEFAULT_BUFFER_SIZE];
-
-		currentInput1BufferPos = 0;
-		currentOutputBufferPos = 0;
-
-		//initialize no filter i.e. any record passes
-		this.guardIN1 = (x) -> true;
-		this.guardOUT = (x) -> true;
-
-		this.isWatchingInput1 = false;
-		this.isWatchingOutput = false;
-
-		this.input1SerializationSchema = new SimpleStringSchema();
-		this.outputSerializationSchema = new SimpleStringSchema();
-
-		startWatchingInput1("");
-		startWatchingOutput("");
-
-		if(this.operator instanceof TwoInputStreamOperator){
-			input2Buffer = new byte[DEFAULT_BUFFER_SIZE];
-			currentInput2BufferPos = 0;
-			this.guardIN2 = (x) -> true;
-			this.isWatchingInput2 = false;
-			this.input2SerializationSchema = new SimpleStringSchema();
-			startWatchingInput2("");
+		if((this.operator instanceof StreamSource) == false){
+			initInput1Watching();
 		}
 
+		if(this.operator instanceof TwoInputStreamOperator){
+			initInput2Watching();
+		}
+
+		if((this.operator instanceof StreamSink) == false){
+			initOutputWatching();
+		}
+
+	}
+
+	private void initInput1Watching(){
+		input1Buffer = new byte[DEFAULT_BUFFER_SIZE];
+		currentInput1BufferPos = 0;
+		this.guardIN1 = (x) -> true;
+		this.isWatchingInput1 = false;
+		this.input1SerializationSchema = new SimpleStringSchema();
+		startWatchingInput1("");
+	}
+
+	private void initInput2Watching(){
+		input2Buffer = new byte[DEFAULT_BUFFER_SIZE];
+		currentInput2BufferPos = 0;
+		this.guardIN2 = (x) -> true;
+		this.isWatchingInput2 = false;
+		this.input2SerializationSchema = new SimpleStringSchema();
+		startWatchingInput2("");
+	}
+
+	private void initOutputWatching(){
+		outputBuffer = new byte[DEFAULT_BUFFER_SIZE];
+		currentOutputBufferPos = 0;
+		this.guardOUT = (x) -> true;
+		this.isWatchingOutput = false;
+		this.outputSerializationSchema = new SimpleStringSchema();
+		startWatchingOutput("");
 	}
 
 	// ------------------------------------------------------------------------
@@ -347,54 +360,18 @@ public class Watchpoint {
 	//  Close
 	// ------------------------------------------------------------------------
 
-	public void flushInput1Buffer() {
-		synchronized (lock){
-			if(currentInput1BufferPos > 0){
-				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), input1Buffer, currentInput1BufferPos, TaskRecorder.Command.RECORD_INPUT1);
-				try{
-					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
-					currentInput1BufferPos = 0;
-				}catch(InterruptedException e){
-
-				}
-			}
-		}
-	}
-
-	public void flushInput2Buffer() {
-		synchronized (lock){
-			if(currentInput2BufferPos > 0){
-				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), input2Buffer, currentInput2BufferPos, TaskRecorder.Command.RECORD_INPUT2);
-				try{
-					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
-					currentInput2BufferPos = 0;
-				}catch(InterruptedException e){
-
-				}
-			}
-		}
-	}
-
-	public void flushOutputBuffer() {
-		synchronized (lock){
-			if(currentOutputBufferPos > 0){
-				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), outputBuffer, currentOutputBufferPos, TaskRecorder.Command.RECORD_OUTPUT);
-				try{
-					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
-					currentOutputBufferPos = 0;
-				}catch(InterruptedException e){
-
-				}
-			}
-		}
-	}
-
 	public void close() {
-		closeInput1Watcher();
+		if((this.operator instanceof StreamSource) == false){
+			closeInput1Watcher();
+		}
+
 		if(this.operator instanceof TwoInputStreamOperator){
 			closeInput2Watcher();
 		}
-		closeOutputWatcher();
+
+		if((this.operator instanceof StreamSink) == false){
+			closeOutputWatcher();
+		}
 	}
 
 	private void closeInput1Watcher() {
@@ -438,6 +415,48 @@ public class Watchpoint {
 
 			}
 			isWatchingOutput = false;
+		}
+	}
+
+	public void flushInput1Buffer() {
+		synchronized (lock){
+			if(currentInput1BufferPos > 0){
+				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), input1Buffer, currentInput1BufferPos, TaskRecorder.Command.RECORD_INPUT1);
+				try{
+					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
+					currentInput1BufferPos = 0;
+				}catch(InterruptedException e){
+
+				}
+			}
+		}
+	}
+
+	public void flushInput2Buffer() {
+		synchronized (lock){
+			if(currentInput2BufferPos > 0){
+				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), input2Buffer, currentInput2BufferPos, TaskRecorder.Command.RECORD_INPUT2);
+				try{
+					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
+					currentInput2BufferPos = 0;
+				}catch(InterruptedException e){
+
+				}
+			}
+		}
+	}
+
+	public void flushOutputBuffer() {
+		synchronized (lock){
+			if(currentOutputBufferPos > 0){
+				Tuple4<OperatorID, byte[], Integer, TaskRecorder.Command> writeRequest = new Tuple4<>(operator.getOperatorID(), outputBuffer, currentOutputBufferPos, TaskRecorder.Command.RECORD_OUTPUT);
+				try{
+					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
+					currentOutputBufferPos = 0;
+				}catch(InterruptedException e){
+
+				}
+			}
 		}
 	}
 

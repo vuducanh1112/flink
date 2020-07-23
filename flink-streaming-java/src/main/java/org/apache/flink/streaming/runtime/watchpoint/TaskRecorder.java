@@ -126,12 +126,12 @@ public class TaskRecorder implements Runnable {
 
 				recordsFileOutputStream = new FileOutputStream(new File(recordsFile.makeQualified(fs).getPath()), true);
 
-				if(watchpointRecordFiles.containsKey(operatorID)){
-					watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = recordsFileOutputStream;
-				}else{
+				if(watchpointRecordFiles.containsKey(operatorID) == false){
 					//each operator has three file output streams: input1, input2, output
 					watchpointRecordFiles.put(operatorID, new FileOutputStream[3]);
 				}
+
+				watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = recordsFileOutputStream;
 
 			}catch(IOException e){
 
