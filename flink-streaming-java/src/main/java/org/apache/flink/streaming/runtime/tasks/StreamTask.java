@@ -575,9 +575,14 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		}
 
 		//shutdown and cleanup task recorder
-		taskRecorder.stop();
-		taskRecorderThread.interrupt();
-		taskRecorder.close();
+		try{
+			taskRecorder.stop();
+			taskRecorderThread.interrupt();
+			taskRecorder.close();
+		}catch(Exception e){
+
+		}
+
 
 		mailboxProcessor.close();
 	}
