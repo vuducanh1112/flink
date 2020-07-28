@@ -525,11 +525,6 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		// still let the computation fail
 		disposeAllOperators(false);
 		disposedOperators = true;
-
-		//shutdown task recorder
-		taskRecorder.stop();
-		taskRecorderThread.interrupt();
-		taskRecorder.close();
 	}
 
 	private void cleanUpInvoke() throws Exception {
@@ -578,6 +573,11 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			// failed to allocate operatorChain, clean up record writers
 			recordWriter.close();
 		}
+
+		//shutdown and cleanup task recorder
+		taskRecorder.stop();
+		taskRecorderThread.interrupt();
+		taskRecorder.close();
 
 		mailboxProcessor.close();
 	}
