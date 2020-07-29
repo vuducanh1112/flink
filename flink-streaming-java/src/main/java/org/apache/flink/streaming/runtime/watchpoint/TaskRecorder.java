@@ -4,6 +4,9 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.runtime.jobgraph.OperatorID;
+import org.apache.flink.streaming.runtime.tasks.StreamTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,6 +49,8 @@ public class TaskRecorder implements Runnable {
 		}
 	}
 
+	protected static final Logger LOG = LoggerFactory.getLogger(TaskRecorder.class);
+
 	private Map<OperatorID, FileOutputStream[]> watchpointRecordFiles;
 
 	private LinkedBlockingQueue<Tuple4<OperatorID,byte[],Integer, Command>> requestQueue;
@@ -84,6 +89,7 @@ public class TaskRecorder implements Runnable {
 						return;
 					} else {
 						//IOManagerAsync.LOG.warn(Thread.currentThread() + " was interrupted without shutdown.");
+						LOG.warn(Thread.currentThread() + " was interrupted without shutdown.");
 					}
 				}
 			}
@@ -104,10 +110,10 @@ public class TaskRecorder implements Runnable {
 			}
 		}
 		catch (IOException e) {
-
+			LOG.error(e.getMessage());
 		}
 		catch (Throwable t) {
-
+			LOG.error(t.getMessage());
 		}
 	}
 
@@ -134,7 +140,7 @@ public class TaskRecorder implements Runnable {
 				watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = recordsFileOutputStream;
 
 			}catch(IOException e){
-
+				LOG.error(e.getMessage());
 			}
 		}
 
@@ -150,7 +156,7 @@ public class TaskRecorder implements Runnable {
 					outputStream.close();
 					watchpointRecordFiles.get(operatorID)[command.getStreamIndex()] = null;
 				} catch (IOException e) {
-
+					LOG.error(e.getMessage());
 				}
 			}
 		}
@@ -177,7 +183,7 @@ public class TaskRecorder implements Runnable {
 					handleRequest(requestQueue.take());
 				}
 			}catch(InterruptedException e){
-
+				LOG.error(e.getMessage());
 			}
 		}
 	}

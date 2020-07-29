@@ -580,7 +580,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			taskRecorderThread.interrupt();
 			taskRecorder.close();
 		}catch(Exception e){
-
+			LOG.warn(e.getMessage());
 		}
 
 

@@ -244,7 +244,7 @@ public class Watchpoint {
 	//  Watch methods
 	// ------------------------------------------------------------------------
 
-	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord){
+	public <IN1> void watchInput1(StreamRecord<IN1> inStreamRecord) {
 
 		synchronized (lock) {
 
@@ -276,12 +276,12 @@ public class Watchpoint {
 					}
 				}
 			}catch(Exception e){
-
+				LOG.error(e.getMessage());
 			}
 		}
 	}
 
-	public <IN2> void watchInput2(StreamRecord<IN2> inStreamRecord){
+	public <IN2> void watchInput2(StreamRecord<IN2> inStreamRecord) {
 		synchronized (lock) {
 
 			try{
@@ -311,12 +311,12 @@ public class Watchpoint {
 					}
 				}
 			}catch(Exception e){
-
+				LOG.error(e.getMessage());
 			}
 		}
 	}
 
-	public <OUT> void watchOutput(StreamRecord<OUT> outStreamRecord){
+	public <OUT> void watchOutput(StreamRecord<OUT> outStreamRecord) {
 		synchronized (lock) {
 
 			try{
@@ -347,7 +347,7 @@ public class Watchpoint {
 					}
 				}
 			}catch(Exception e){
-
+				LOG.error(e.getMessage());
 			}
 		}
 	}
@@ -383,7 +383,7 @@ public class Watchpoint {
 			try{
 				this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 			}catch(InterruptedException e){
-
+				LOG.error(e.getMessage());
 			}
 			isWatchingInput1 = false;
 		}
@@ -398,7 +398,7 @@ public class Watchpoint {
 			try{
 				this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 			}catch(InterruptedException e){
-
+				LOG.error(e.getMessage());
 			}
 			isWatchingInput2 = false;
 		}
@@ -412,7 +412,7 @@ public class Watchpoint {
 			try{
 				this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 			}catch(InterruptedException e){
-
+				LOG.error(e.getMessage());
 			}
 			isWatchingOutput = false;
 		}
@@ -426,7 +426,7 @@ public class Watchpoint {
 					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 					currentInput1BufferPos = 0;
 				}catch(InterruptedException e){
-
+					LOG.error(e.getMessage());
 				}
 			}
 		}
@@ -440,7 +440,7 @@ public class Watchpoint {
 					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 					currentInput2BufferPos = 0;
 				}catch(InterruptedException e){
-
+					LOG.error(e.getMessage());
 				}
 			}
 		}
@@ -454,7 +454,7 @@ public class Watchpoint {
 					this.operator.getContainingTask().getTaskRecorder().getRequestQueue().put(writeRequest);
 					currentOutputBufferPos = 0;
 				}catch(InterruptedException e){
-
+					LOG.error(e.getMessage());
 				}
 			}
 		}
